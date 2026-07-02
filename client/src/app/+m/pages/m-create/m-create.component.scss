@@ -65,6 +65,23 @@
   @include m.sticker-solid(3px, -2deg);
 }
 
+// "续集" target banner
+.m-cr-target {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 14px 12px 0;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: m.$accent2-soft;
+  border: 2px solid m.$accent2;
+  color: m.$text;
+  font-size: 13px;
+  font-weight: 700;
+
+  my-global-icon { width: 18px; height: 18px; color: m.$accent2; flex: none; }
+}
+
 // upload your own
 .m-cr-upload {
   display: flex;

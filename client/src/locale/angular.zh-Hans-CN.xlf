@@ -29515,6 +29515,30 @@ Ensure you have correctly configured BoomBoom (config/ directory), in particular
         <source>Add episode</source>
         <target state="translated">续集</target>
       </trans-unit>
+      <trans-unit id="boomboom.m.create.addingTo" datatype="html">
+        <source>Adding an episode to</source>
+        <target state="translated">正在为这部剧添加剧集</target>
+      </trans-unit>
+      <trans-unit id="boomboom.m.upload.importFromDuanju" datatype="html">
+        <source>Import this episode from 短剧工坊</source>
+        <target state="translated">从短剧工坊导入这一集</target>
+      </trans-unit>
+      <trans-unit id="boomboom.m.upload.orUpload" datatype="html">
+        <source>or upload a file</source>
+        <target state="translated">或上传文件</target>
+      </trans-unit>
+      <trans-unit id="boomboom.m.player.promoTitle" datatype="html">
+        <source>AI-generated on 短剧工坊</source>
+        <target state="translated">本片由 短剧工坊 AI 生成</target>
+      </trans-unit>
+      <trans-unit id="boomboom.m.player.promoCta" datatype="html">
+        <source>Create your own drama →</source>
+        <target state="translated">我也来创作 →</target>
+      </trans-unit>
+      <trans-unit id="boomboom.m.player.promoAd" datatype="html">
+        <source>Ad</source>
+        <target state="translated">广告</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

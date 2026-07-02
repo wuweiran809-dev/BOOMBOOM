@@ -182,6 +182,18 @@ export class MPlayerComponent implements OnInit, OnDestroy {
     this.router.navigate([ '/m/recharge' ])
   }
 
+  // Videos generated on 短剧工坊 show an ad-style promo that drives viewers to
+  // the platform (referral funnel, with source attribution).
+  get isDuanju (): boolean {
+    return (this.video() as any)?.externalSource === 'duanju'
+  }
+
+  openDuanjuPromo () {
+    const ref = String(this.auth.getUser()?.id ?? '')
+    const params = new URLSearchParams({ utm_source: 'boomboom', utm_medium: 'player', utm_campaign: 'drama', ref })
+    window.open(`https://ai.xss16.com/?${params.toString()}`, '_blank', 'noopener')
+  }
+
   // ---------------------------------------------------------------------------
   // Danmaku
   // ---------------------------------------------------------------------------

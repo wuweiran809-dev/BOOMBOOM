@@ -49,8 +49,12 @@ export class MDuanjuService {
   }
 
   // Import one finished episode into BOOMBOOM:
-  // download the mp4 through the bridge (authed) -> upload as a BOOMBOOM video -> tag source.
-  importEpisode (work: DuanjuWork, channelId: number): Observable<any> {
+  // download the mp4 through the bridge (authed) -> upload as a BOOMBOOM video -> tag source + series.
+  // seriesName override lets "续集" import a duanju episode INTO an existing BOOMBOOM drama;
+  // when omitted it groups by the duanju project name.
+  importEpisode (work: DuanjuWork, channelId: number, seriesName?: string): Observable<any> {
+    const series = (seriesName && seriesName.trim()) || work.projectName || work.title
+
     return this.authHttp.get(`${MDuanjuService.BASE}/download/${work.episodeId}`, { responseType: 'blob' })
       .pipe(
         switchMap(blob => {
@@ -64,10 +68,10 @@ export class MDuanjuService {
         switchMap((up: any) => {
           const vid = up?.video
           if (!vid?.id) return of(up)
-          // tag origin + group by the duanju project (so its episodes stay together)
+          // tag origin + group by the target drama (续集) or the duanju project
           return this.authHttp.put(`${MDuanjuService.VIDEOS}/${vid.id}/source`, { source: 'duanju' })
             .pipe(
-              switchMap(() => this.authHttp.put(`${MDuanjuService.VIDEOS}/${vid.id}/series`, { seriesName: work.projectName || work.title })),
+              switchMap(() => this.authHttp.put(`${MDuanjuService.VIDEOS}/${vid.id}/series`, { seriesName: series })),
               map(() => up)
             )
         }),

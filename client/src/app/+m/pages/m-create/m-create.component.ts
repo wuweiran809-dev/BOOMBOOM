@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core'
 import { FormsModule } from '@angular/forms'
-import { Router, RouterLink } from '@angular/router'
+import { ActivatedRoute, Router, RouterLink } from '@angular/router'
 import { AuthService, Notifier } from '@app/core'
 import { GlobalIconComponent } from '@app/shared/shared-icons/global-icon.component'
 import { DuanjuWork, MDuanjuService } from '../../m-duanju.service'
@@ -17,7 +17,11 @@ export class MCreateComponent implements OnInit {
   private duanju = inject(MDuanjuService)
   private auth = inject(AuthService)
   private router = inject(Router)
+  private route = inject(ActivatedRoute)
   private notifier = inject(Notifier)
+
+  // "续集" target: import a duanju episode INTO this existing BOOMBOOM drama
+  importSeries = signal<string | null>(null)
 
   connected = signal(false)
   duanjuUsername = signal<string | null>(null)
@@ -41,6 +45,7 @@ export class MCreateComponent implements OnInit {
   }
 
   ngOnInit () {
+    this.importSeries.set(this.route.snapshot.queryParamMap.get('importSeries'))
     if (this.isLoggedIn) this.refreshStatus()
   }
 
@@ -100,10 +105,15 @@ export class MCreateComponent implements OnInit {
     if (!chId) { this.notifier.error($localize`:@@boomboom.m.create.noChannel:No channel available`); return }
 
     this.importingId.set(w.episodeId)
-    this.duanju.importEpisode(w, chId).subscribe({
+    this.duanju.importEpisode(w, chId, this.importSeries() || undefined).subscribe({
       next: (up: any) => {
         this.importingId.set(null)
         this.notifier.success($localize`:@@boomboom.m.create.imported:Imported to BOOMBOOM`)
+        // 续集: go back to My Works to see the drama updated; else open the new video
+        if (this.importSeries()) {
+          this.router.navigate([ '/m/works' ])
+          return
+        }
         const v = up?.video
         if (v?.shortUUID || v?.uuid) this.router.navigate([ '/m/w', v.shortUUID || v.uuid ])
       },

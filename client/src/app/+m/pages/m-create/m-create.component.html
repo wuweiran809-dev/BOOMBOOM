@@ -14,6 +14,13 @@
       <a routerLink="/m/login" class="m-cr-cta" i18n="@@boomboom.m.create.login">Log in</a>
     </div>
   } @else {
+    @if (importSeries()) {
+      <div class="m-cr-target">
+        <my-global-icon iconName="burst"></my-global-icon>
+        <span><ng-container i18n="@@boomboom.m.create.addingTo">Adding an episode to</ng-container> 《{{ importSeries() }}》</span>
+      </div>
+    }
+
     <!-- upload your own -->
     <button class="m-cr-upload" (click)="goUpload()">
       <div class="m-cr-upload-ic"><my-global-icon iconName="add"></my-global-icon></div>

@@ -11,6 +11,19 @@
   </div>
 
   <div class="m-up-scroll">
+    @if (seriesName) {
+      <!-- 续集: import the next episode straight from 短剧工坊 instead of uploading -->
+      <a class="m-up-import" routerLink="/m/create" [queryParams]="{ importSeries: seriesName }">
+        <my-global-icon iconName="burst"></my-global-icon>
+        <span class="txt">
+          <span class="t" i18n="@@boomboom.m.upload.importFromDuanju">Import this episode from 短剧工坊</span>
+          <span class="s">《{{ seriesName }}》</span>
+        </span>
+        <span class="chev">›</span>
+      </a>
+      <div class="m-up-or" i18n="@@boomboom.m.upload.orUpload">or upload a file</div>
+    }
+
     <!-- cover + basic -->
     <div class="m-up-row1">
       <button class="m-up-cover" [style.background-image]="coverPreview() ? 'url(' + coverPreview() + ')' : ''" (click)="coverInput.click()">

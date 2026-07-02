@@ -49,6 +49,18 @@
     }
   </div>
 
+  <!-- ad-style promo: drives viewers to 短剧工坊 (referral funnel) -->
+  @if (isDuanju) {
+    <button class="m-player-promo" (click)="openDuanjuPromo()">
+      <span class="m-promo-badge"><my-global-icon iconName="burst"></my-global-icon></span>
+      <span class="m-promo-txt">
+        <span class="t" i18n="@@boomboom.m.player.promoTitle">AI-generated on 短剧工坊</span>
+        <span class="s" i18n="@@boomboom.m.player.promoCta">Create your own drama →</span>
+      </span>
+      <span class="m-promo-ad" i18n="@@boomboom.m.player.promoAd">Ad</span>
+    </button>
+  }
+
   <!-- danmaku input bar (when unlocked) -->
   @if (unlocked()) {
     <div class="m-danmaku-bar">

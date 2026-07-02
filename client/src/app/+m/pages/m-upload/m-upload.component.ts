@@ -1,7 +1,7 @@
 import { HttpClient, HttpEventType } from '@angular/common/http'
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core'
 import { FormsModule } from '@angular/forms'
-import { ActivatedRoute, Router } from '@angular/router'
+import { ActivatedRoute, Router, RouterLink } from '@angular/router'
 import { AuthService, Notifier } from '@app/core'
 import { GlobalIconComponent } from '@app/shared/shared-icons/global-icon.component'
 import { environment } from '../../../../environments/environment'
@@ -11,7 +11,7 @@ import { environment } from '../../../../environments/environment'
   templateUrl: './m-upload.component.html',
   styleUrls: [ './m-upload.component.scss' ],
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [ FormsModule, GlobalIconComponent ]
+  imports: [ FormsModule, GlobalIconComponent, RouterLink ]
 })
 export class MUploadComponent implements OnInit {
   private router = inject(Router)
