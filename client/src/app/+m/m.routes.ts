@@ -15,6 +15,7 @@ import { MRechargeComponent } from './pages/m-recharge/m-recharge.component'
 import { MRegisterComponent } from './pages/m-register/m-register.component'
 import { MSettingsComponent } from './pages/m-settings/m-settings.component'
 import { MUploadComponent } from './pages/m-upload/m-upload.component'
+import { MWorksComponent } from './pages/m-works/m-works.component'
 
 export default [
   {
@@ -74,6 +75,11 @@ export default [
     path: 'create',
     component: MCreateComponent,
     data: { meta: { title: $localize`:@@boomboom.m.route.create:Creator Studio` } }
+  },
+  {
+    path: 'works',
+    component: MWorksComponent,
+    data: { meta: { title: $localize`:@@boomboom.m.route.works:My Works` } }
   },
   {
     path: 'history',

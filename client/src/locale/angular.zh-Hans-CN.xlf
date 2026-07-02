@@ -29487,6 +29487,34 @@ Ensure you have correctly configured BoomBoom (config/ directory), in particular
         <source>同名归为一部剧,单集可留空</source>
         <target state="translated">同名归为一部剧,单集可留空</target>
       </trans-unit>
+      <trans-unit id="boomboom.m.route.works" datatype="html">
+        <source>My Works</source>
+        <target state="translated">我的作品</target>
+      </trans-unit>
+      <trans-unit id="boomboom.m.works.title" datatype="html">
+        <source>My Works</source>
+        <target state="translated">我的作品</target>
+      </trans-unit>
+      <trans-unit id="boomboom.m.works.new" datatype="html">
+        <source>New</source>
+        <target state="translated">新作品</target>
+      </trans-unit>
+      <trans-unit id="boomboom.m.works.empty" datatype="html">
+        <source>You haven't published anything yet.</source>
+        <target state="translated">你还没有发布任何作品</target>
+      </trans-unit>
+      <trans-unit id="boomboom.m.works.create" datatype="html">
+        <source>Publish a drama</source>
+        <target state="translated">发布一部短剧</target>
+      </trans-unit>
+      <trans-unit id="boomboom.m.works.eps" datatype="html">
+        <source>eps</source>
+        <target state="translated">集</target>
+      </trans-unit>
+      <trans-unit id="boomboom.m.works.addEp" datatype="html">
+        <source>Add episode</source>
+        <target state="translated">续集</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

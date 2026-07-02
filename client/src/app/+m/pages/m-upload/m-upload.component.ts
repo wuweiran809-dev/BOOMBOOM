@@ -1,7 +1,7 @@
 import { HttpClient, HttpEventType } from '@angular/common/http'
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core'
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core'
 import { FormsModule } from '@angular/forms'
-import { Router } from '@angular/router'
+import { ActivatedRoute, Router } from '@angular/router'
 import { AuthService, Notifier } from '@app/core'
 import { GlobalIconComponent } from '@app/shared/shared-icons/global-icon.component'
 import { environment } from '../../../../environments/environment'
@@ -13,11 +13,18 @@ import { environment } from '../../../../environments/environment'
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [ FormsModule, GlobalIconComponent ]
 })
-export class MUploadComponent {
+export class MUploadComponent implements OnInit {
   private router = inject(Router)
+  private route = inject(ActivatedRoute)
   private http = inject(HttpClient)
   private auth = inject(AuthService)
   private notifier = inject(Notifier)
+
+  ngOnInit () {
+    // "续集" flow: pre-fill the series so the new video joins that drama
+    const series = this.route.snapshot.queryParamMap.get('series')
+    if (series) this.seriesName = series
+  }
 
   title = ''
   desc = ''
@@ -132,9 +139,10 @@ export class MUploadComponent {
       else this.router.navigate([ '/m/me' ])
     }
 
-    // tag the drama/series (so episodes group together), then finish
+    // tag the drama/series (so episodes group together), then finish.
+    // Default to the title so every work is its own series and can be continued.
     const setSeries = () => {
-      const s = this.seriesName.trim()
+      const s = this.seriesName.trim() || this.title.trim()
       if (id && s) {
         this.http.put(`${environment.apiUrl}/api/v1/users/me/videos/${id}/series`, { seriesName: s })
           .subscribe({ next: finish, error: finish })

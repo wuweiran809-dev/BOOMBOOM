@@ -1,0 +1,139 @@
+@use '../../shared/m-sub' as sub;
+@use '../../m-tokens' as m;
+
+@include sub.sub-shell;
+
+.m-works-new {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: m.$logo-grad;
+  color: #fff;
+  font-weight: 800;
+  font-size: 13px;
+  cursor: pointer;
+  @include m.sticker-solid(2px, -2deg);
+
+  my-global-icon { width: 15px; height: 15px; }
+}
+
+.m-works-drama {
+  margin-bottom: 22px;
+}
+
+.m-works-drama-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.m-works-drama-name {
+  font-family: m.$font-display;
+  font-size: 19px;
+  color: #fff;
+  transform: rotate(-1deg);
+  text-shadow: 2px 2px 0 m.$accent;
+}
+
+.m-works-drama-count {
+  font-size: 12px;
+  font-weight: 700;
+  color: m.$text-muted;
+}
+
+.m-works-eps {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 2px 2px 8px;
+  @include m.no-scrollbar;
+}
+
+.m-works-ep {
+  flex: 0 0 auto;
+  width: 96px;
+  padding: 0;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+
+  &:nth-child(odd) { transform: rotate(-1deg); }
+  &:nth-child(even) { transform: rotate(1deg); }
+}
+
+.m-works-ep-cover {
+  position: relative;
+  width: 96px;
+  height: 128px;
+  border-radius: 10px;
+  background-color: m.$surface-raised;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: m.$text-muted;
+  @include m.sticker-solid(3px);
+
+  my-global-icon { width: 26px; height: 26px; }
+}
+
+.m-works-ep-num {
+  position: absolute;
+  left: 5px;
+  bottom: 5px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  font-family: m.$font-mono;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.m-works-ep-src {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: m.$accent2;
+  color: m.$ink;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.m-works-ep-title {
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: m.$text;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.m-works-add {
+  flex: 0 0 auto;
+  width: 96px;
+  height: 128px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 10px;
+  border: 2px dashed m.$border-strong;
+  background: m.$surface-sunken;
+  color: m.$accent;
+  font-weight: 800;
+  font-size: 12px;
+  cursor: pointer;
+
+  my-global-icon { width: 26px; height: 26px; }
+}

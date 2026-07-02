@@ -1,0 +1,57 @@
+<div class="m-sub-top">
+  <a routerLink="/m/me" class="m-sub-back">
+    <my-global-icon iconName="chevron-left"></my-global-icon>
+  </a>
+  <span class="m-sub-title" i18n="@@boomboom.m.works.title">My Works</span>
+  <span class="m-sub-spacer"></span>
+  <button class="m-works-new" (click)="newWork()">
+    <my-global-icon iconName="add"></my-global-icon>
+    <span i18n="@@boomboom.m.works.new">New</span>
+  </button>
+</div>
+
+<div class="m-sub-body">
+  @if (!isLoggedIn) {
+    <div class="m-sub-empty">
+      <my-global-icon iconName="user"></my-global-icon>
+      <span i18n="@@boomboom.m.common.loginRequired">Log in to view this.</span>
+      <a routerLink="/m/login" class="m-sub-empty-cta" i18n="@@boomboom.m.common.login">Log in</a>
+    </div>
+  } @else if (loading()) {
+    <div class="m-sub-loading" i18n="@@boomboom.m.common.loading">Loading…</div>
+  } @else if (groups().length === 0) {
+    <div class="m-sub-empty">
+      <my-global-icon iconName="videos"></my-global-icon>
+      <span i18n="@@boomboom.m.works.empty">You haven't published anything yet.</span>
+      <button class="m-sub-empty-cta" (click)="newWork()" i18n="@@boomboom.m.works.create">Publish a drama</button>
+    </div>
+  } @else {
+    @for (g of groups(); track g.series) {
+      <div class="m-works-drama">
+        <div class="m-works-drama-head">
+          <span class="m-works-drama-name">{{ g.series }}</span>
+          <span class="m-works-drama-count">{{ g.episodes.length }}&nbsp;<span i18n="@@boomboom.m.works.eps">eps</span></span>
+        </div>
+
+        <div class="m-works-eps">
+          @for (ep of g.episodes; track ep.uuid; let i = $index) {
+            <button class="m-works-ep" (click)="open(ep)">
+              <div class="m-works-ep-cover" [style.background-image]="thumb(ep) ? 'url(' + thumb(ep) + ')' : ''">
+                @if (!thumb(ep)) { <my-global-icon iconName="videos"></my-global-icon> }
+                <span class="m-works-ep-num">{{ epNum(i) }}</span>
+                @if (ep.externalSource === 'duanju') { <span class="m-works-ep-src" i18n="@@boomboom.m.source.duanju">短剧工坊</span> }
+              </div>
+              <div class="m-works-ep-title">{{ ep.name }}</div>
+            </button>
+          }
+
+          <!-- 续集 -->
+          <button class="m-works-add" (click)="continueSeries(g)">
+            <my-global-icon iconName="add"></my-global-icon>
+            <span i18n="@@boomboom.m.works.addEp">Add episode</span>
+          </button>
+        </div>
+      </div>
+    }
+  }
+</div>
