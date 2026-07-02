@@ -1,0 +1,17 @@
+@use '_variables' as *;
+@use '_mixins' as *;
+
+.root {
+  display: inline-block;
+  width: 230px;
+
+  @media screen and (max-width: 500px) {
+    width: 140px;
+  }
+}
+
+div ::ng-deep svg {
+  color: pvar(--primary);
+  width: inherit;
+  height: inherit;
+}

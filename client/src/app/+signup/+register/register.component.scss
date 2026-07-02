@@ -1,0 +1,344 @@
+@use '_variables' as *;
+@use '_mixins' as *;
+
+$bb-accent: #FF4757;
+$bb-accent2: #FFA502;
+$bb-bg: #0D1117;
+$bb-sunken: #10151C;
+$bb-border: rgba(255, 255, 255, 0.07);
+$bb-border-strong: rgba(255, 255, 255, 0.14);
+$bb-text-primary: rgba(255, 255, 255, 0.95);
+$bb-text-secondary: rgba(255, 255, 255, 0.6);
+$bb-text-muted: rgba(255, 255, 255, 0.4);
+
+my-signup-step-title strong {
+  font-weight: $font-bold;
+}
+
+.signup-disabled {
+  padding-top: 30vh;
+}
+
+my-instance-about-accordion {
+  display: block;
+  margin-bottom: 30px;
+}
+
+.step-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+
+  .skip-step {
+    display: inline-block;
+
+    @include margin-right(30px);
+  }
+
+  .skip-step-description {
+    margin-top: 5px;
+    font-size: 14px;
+  }
+
+  > button,
+  .skip-step {
+    margin-top: 20px;
+    margin-bottom: 20px;
+  }
+
+  .skip-step,
+  button[cdkStepperNext] {
+    @include margin-left(auto);
+  }
+
+  .skip-step + button[cdkStepperNext] {
+    @include margin-left(0);
+  }
+}
+
+.done-loader {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+
+  my-loader {
+    margin-bottom: 20px;
+  }
+}
+
+@media screen and (max-width: $small-view) {
+  .step-buttons {
+    justify-content: space-between;
+
+    .skip-step,
+    button[cdkStepperNext] {
+      @include margin-left(0);
+    }
+  }
+}
+
+// ===== MOBILE BOOMBOOM DARK THEME =====
+@media screen and (max-width: $mobile-view) {
+  :host {
+    display: block;
+  }
+
+  .margin-content {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .register-content {
+    min-height: 100vh;
+    background: radial-gradient(420px 300px at 20% 6%, rgba(255, 165, 2, 0.18), transparent 70%);
+    padding: 16px 24px 40px;
+  }
+
+  // Hide about step content that's not relevant on mobile
+  ::ng-deep my-register-step-about {
+    .why {
+      display: none;
+    }
+
+    my-instance-banner {
+      display: none;
+    }
+
+    my-alert {
+      margin-bottom: 16px;
+    }
+  }
+
+  // Hide instance accordion on mobile
+  ::ng-deep my-instance-about-accordion {
+    display: none !important;
+  }
+
+  // Restyle step title for mobile
+  ::ng-deep my-signup-step-title {
+    .root {
+      flex-direction: column;
+      align-items: flex-start !important;
+      gap: 12px;
+    }
+
+    .mascot {
+      display: none !important;
+    }
+
+    h2 {
+      font-size: 24px !important;
+      font-weight: 700;
+      color: $bb-text-primary;
+      margin: 0 !important;
+
+      strong {
+        display: block;
+        font-size: 28px;
+        letter-spacing: -0.02em;
+      }
+
+      div {
+        font-size: 15px;
+        font-weight: 400;
+        color: $bb-text-secondary;
+        margin-top: 4px;
+      }
+    }
+  }
+
+  // Restyle all form inputs for dark theme
+  ::ng-deep {
+    label {
+      font-size: 14px !important;
+      color: $bb-text-secondary !important;
+      margin-bottom: 6px !important;
+    }
+
+    .form-group-description {
+      display: none;
+    }
+
+    input.form-control,
+    input:not([type="submit"]):not([type="checkbox"]):not([type="radio"]) {
+      height: 48px !important;
+      border-radius: 12px !important;
+      background: $bb-sunken !important;
+      border: 1px solid $bb-border !important;
+      color: $bb-text-primary !important;
+      font-size: 15px !important;
+      padding: 0 16px !important;
+      box-shadow: none !important;
+
+      &::placeholder {
+        color: $bb-text-muted !important;
+      }
+
+      &:focus {
+        border-color: rgba(255, 71, 87, 0.42) !important;
+        box-shadow: 0 0 0 3px rgba(255, 71, 87, 0.15) !important;
+      }
+
+      &.input-error {
+        border-color: $bb-accent !important;
+      }
+    }
+
+    .input-group {
+      flex-wrap: nowrap;
+
+      .input-group-text {
+        height: 48px;
+        border-radius: 0 12px 12px 0 !important;
+        background: rgba(255, 255, 255, 0.04) !important;
+        border: 1px solid $bb-border !important;
+        border-left: none !important;
+        color: $bb-text-muted !important;
+        font-size: 13px !important;
+      }
+
+      input.form-control {
+        border-radius: 12px 0 0 12px !important;
+      }
+    }
+
+    // InputText component (password field)
+    my-input-text {
+      .input-container {
+        input {
+          height: 48px !important;
+          border-radius: 12px !important;
+          background: $bb-sunken !important;
+          border: 1px solid $bb-border !important;
+          color: $bb-text-primary !important;
+          font-size: 15px !important;
+
+          &::placeholder {
+            color: $bb-text-muted !important;
+          }
+
+          &:focus {
+            border-color: rgba(255, 71, 87, 0.42) !important;
+            box-shadow: 0 0 0 3px rgba(255, 71, 87, 0.15) !important;
+          }
+        }
+
+        .toggle-password {
+          color: $bb-text-muted;
+        }
+      }
+    }
+
+    .form-error {
+      color: $bb-accent !important;
+      font-size: 12px !important;
+      margin-top: 4px;
+    }
+
+    // Terms step checkboxes
+    my-register-step-terms {
+      label {
+        color: $bb-text-primary !important;
+      }
+
+      .form-group-description {
+        display: block;
+        color: $bb-text-secondary !important;
+      }
+
+      textarea {
+        border-radius: 12px !important;
+        background: $bb-sunken !important;
+        border: 1px solid $bb-border !important;
+        color: $bb-text-primary !important;
+        font-size: 14px !important;
+
+        &::placeholder {
+          color: $bb-text-muted !important;
+        }
+
+        &:focus {
+          border-color: rgba(255, 71, 87, 0.42) !important;
+          box-shadow: 0 0 0 3px rgba(255, 71, 87, 0.15) !important;
+        }
+      }
+    }
+
+    // Alert component
+    my-alert {
+      .alert {
+        background: rgba(255, 71, 87, 0.1) !important;
+        border-color: rgba(255, 71, 87, 0.25) !important;
+        color: $bb-text-primary !important;
+        border-radius: 12px !important;
+      }
+    }
+
+    // Row layout for mobile
+    .row {
+      margin-bottom: 14px !important;
+
+      .col-md-12 {
+        margin-bottom: 14px;
+      }
+    }
+  }
+
+  // Step buttons
+  .step-buttons {
+    margin-top: 8px;
+    gap: 12px;
+
+    button, a {
+      width: 100%;
+      margin: 0 !important;
+    }
+
+    .skip-step {
+      width: 100%;
+      text-align: center;
+      margin: 0 !important;
+
+      @include margin-right(0);
+    }
+
+    .boomboom-button-big.primary-button,
+    button[cdkStepperNext] {
+      height: 52px !important;
+      border-radius: 12px !important;
+      background: $bb-accent !important;
+      border: none !important;
+      color: #fff !important;
+      font-size: 16px !important;
+      font-weight: 600 !important;
+      box-shadow: 0 8px 24px rgba(255, 71, 87, 0.42) !important;
+      order: -1;
+    }
+
+    .boomboom-button-big.secondary-button,
+    button[cdkStepperPrevious] {
+      height: 48px !important;
+      border-radius: 12px !important;
+      background: transparent !important;
+      border: 1px solid $bb-border-strong !important;
+      color: $bb-text-secondary !important;
+      font-size: 14px !important;
+    }
+
+    a.skip-step {
+      color: $bb-text-secondary !important;
+      font-size: 13.5px !important;
+      order: 1;
+
+      strong {
+        color: $bb-accent;
+      }
+    }
+  }
+
+  // Done/success state
+  .done-loader {
+    color: $bb-text-primary;
+  }
+}

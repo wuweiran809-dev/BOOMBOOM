@@ -1,0 +1,92 @@
+<div class="m-set">
+  <div class="m-set-halftone"></div>
+
+  <!-- header -->
+  <div class="m-set-head">
+    <button class="m-set-back" (click)="back()">
+      <my-global-icon iconName="chevron-left"></my-global-icon>
+    </button>
+    <span class="m-set-title" i18n="@@boomboom.m.settings.title">Settings</span>
+  </div>
+
+  <!-- 编辑资料 (real profile edit) -->
+  @if (isLoggedIn) {
+    <div class="m-set-label" i18n="@@boomboom.m.settings.profile">Profile</div>
+    <div class="m-set-profile">
+      <input #avatarInput type="file" accept="image/*" hidden (change)="onAvatarPicked($event)" />
+      <button class="m-set-avatar" [class.busy]="avatarUploading()" (click)="avatarInput.click()">
+        @if (avatarUrl) {
+          <img [src]="avatarUrl" alt="" />
+        } @else {
+          <my-global-icon iconName="user"></my-global-icon>
+        }
+        <span class="m-set-avatar-cam"><my-global-icon iconName="edit"></my-global-icon></span>
+      </button>
+
+      <div class="m-set-nick">
+        <label i18n="@@boomboom.m.settings.nickname">Nickname</label>
+        <div class="m-set-nick-row">
+          <input
+            type="text"
+            maxlength="50"
+            [ngModel]="displayName()"
+            (ngModelChange)="displayName.set($event)"
+            (keydown.enter)="saveProfile()"
+            placeholder="Your name"
+            i18n-placeholder="@@boomboom.m.settings.nicknamePlaceholder"
+          />
+          <button class="m-set-save" [disabled]="savingProfile()" (click)="saveProfile()" i18n="@@boomboom.m.settings.save">Save</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- 钱包 -->
+  <div class="m-set-label" i18n="@@boomboom.m.settings.wallet">Wallet</div>
+  <button class="m-set-row" style="--rot:-.5deg" (click)="go(['/m/recharge'])">
+    <span class="m-set-ic gold"><my-global-icon iconName="tip"></my-global-icon></span>
+    <span class="m-set-name" i18n="@@boomboom.m.settings.myWallet">My Wallet</span>
+    @if (isLoggedIn) { <span class="m-set-val">{{ coinsDisplay }}</span> }
+    <span class="m-set-chev">›</span>
+  </button>
+
+  <!-- 通用 -->
+  <div class="m-set-label" i18n="@@boomboom.m.settings.general">General</div>
+  @if (isLoggedIn) {
+    <div class="m-set-row static" style="--rot:.5deg">
+      <span class="m-set-ic accent"><my-global-icon iconName="play"></my-global-icon></span>
+      <span class="m-set-name" i18n="@@boomboom.m.settings.autoPlayNext">Auto-play next episode</span>
+      <button class="m-toggle" [class.on]="autoPlayNext" (click)="toggleAutoPlay()"><span></span></button>
+    </div>
+  }
+  <div class="m-set-row static" style="--rot:-.5deg">
+    <span class="m-set-ic info"><my-global-icon iconName="bell"></my-global-icon></span>
+    <span class="m-set-name" i18n="@@boomboom.m.settings.notifications">Notifications</span>
+    <button class="m-toggle" [class.on]="notifyOn()" (click)="toggleNotify()"><span></span></button>
+  </div>
+  <div class="m-set-row static" style="--rot:.5deg">
+    <span class="m-set-ic gray"><my-global-icon iconName="globe"></my-global-icon></span>
+    <span class="m-set-name" i18n="@@boomboom.m.settings.wifiOnly">Wi-Fi only playback</span>
+    <button class="m-toggle" [class.on]="wifiOnly()" (click)="toggleWifi()"><span></span></button>
+  </div>
+  <button class="m-set-row" style="--rot:-.6deg" (click)="clearCache()">
+    <span class="m-set-ic green"><my-global-icon iconName="delete"></my-global-icon></span>
+    <span class="m-set-name" i18n="@@boomboom.m.settings.clearCache">Clear cache</span>
+    <span class="m-set-chev">›</span>
+  </button>
+
+  <!-- 关于 -->
+  <div class="m-set-label" i18n="@@boomboom.m.settings.about">About</div>
+  <div class="m-set-row static" style="--rot:-.4deg">
+    <span class="m-set-ic info"><my-global-icon iconName="help"></my-global-icon></span>
+    <span class="m-set-name" i18n="@@boomboom.m.settings.aboutApp">About BoomBoom · 要爆了</span>
+    @if (appVersion) { <span class="m-set-val">v{{ appVersion }}</span> }
+  </div>
+
+  <!-- logout -->
+  @if (isLoggedIn) {
+    <div class="m-set-logout-wrap">
+      <button class="m-set-logout" (click)="logout()" i18n="@@boomboom.m.settings.logout">Log out</button>
+    </div>
+  }
+</div>

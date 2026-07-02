@@ -1,0 +1,49 @@
+/* oxlint-disable @typescript-eslint/no-unused-expressions,@typescript-eslint/require-await */
+
+import { expect } from 'chai'
+import {
+  cleanupTests,
+  createSingleServer,
+  BoomBoomServer,
+  PluginsCommand,
+  setAccessTokensToServers
+} from '@boomboom/boomboom-server-commands'
+
+describe('Test plugin settings', function () {
+  let server: BoomBoomServer
+  let command: PluginsCommand
+
+  before(async function () {
+    this.timeout(30000)
+
+    server = await createSingleServer(1)
+    await setAccessTokensToServers([ server ])
+
+    command = server.plugins
+
+    await command.install({
+      path: PluginsCommand.getPluginTestPath()
+    })
+  })
+
+  it('Should not have duplicate settings', async function () {
+    const { registeredSettings } = await command.getRegisteredSettings({
+      npmName: 'boomboom-plugin-test'
+    })
+
+    expect(registeredSettings.length).to.equal(4)
+    expect(registeredSettings.map(r => r.label)).to.have.members([ 'Test setting', 'Unique setting', 'Unnamed 1', 'Unnamed 2' ])
+  })
+
+  it('Should return the latest registered settings', async function () {
+    const { registeredSettings } = await command.getRegisteredSettings({
+      npmName: 'boomboom-plugin-test'
+    })
+
+    expect(registeredSettings.find(r => r.label === 'Unique setting').options.length).to.equal(1)
+  })
+
+  after(async function () {
+    await cleanupTests([ server ])
+  })
+})

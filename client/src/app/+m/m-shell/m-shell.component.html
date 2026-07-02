@@ -1,0 +1,108 @@
+<div class="m-shell">
+  <div class="m-shell-outlet">
+    <router-outlet></router-outlet>
+  </div>
+
+  <!-- Bottom pop tab bar -->
+  <nav class="m-tabbar">
+    <a routerLink="/m/feed" routerLinkActive="active" class="m-tab">
+      <my-global-icon iconName="home"></my-global-icon>
+      <span i18n="@@boomboom.m.shell.tabHome">Home</span>
+    </a>
+    <a routerLink="/m/discover" routerLinkActive="active" class="m-tab">
+      <my-global-icon iconName="search"></my-global-icon>
+      <span i18n="@@boomboom.m.shell.tabDiscover">Discover</span>
+    </a>
+    <button class="m-tab m-tab-addwrap" (click)="onUploadClick()">
+      <span class="m-tab-add">
+        <my-global-icon iconName="add"></my-global-icon>
+      </span>
+    </button>
+    @if (isLoggedIn) {
+      <a routerLink="/m/notifications" routerLinkActive="active" class="m-tab">
+        <my-global-icon iconName="bell"></my-global-icon>
+        <span i18n="@@boomboom.m.shell.tabNotifications">Notifications</span>
+      </a>
+    }
+    <a routerLink="/m/me" routerLinkActive="active" class="m-tab">
+      <my-global-icon iconName="user"></my-global-icon>
+      <span i18n="@@boomboom.m.shell.tabMe">Me</span>
+    </a>
+  </nav>
+</div>
+
+<!-- ============ 09 侧边菜单 ============ -->
+@if (ui.menuOpen()) {
+  <div class="m-menu-scrim" (click)="ui.closeMenu()"></div>
+  <div class="m-menu-drawer">
+    <button class="m-menu-close" (click)="ui.closeMenu()">
+      <my-global-icon iconName="cross"></my-global-icon>
+    </button>
+
+    <div class="m-menu-head">
+      @if (getAvatarUrl()) {
+        <img [src]="getAvatarUrl()" class="m-menu-avatar" />
+      } @else {
+        <div class="m-menu-avatar m-menu-avatar-ph">
+          <my-global-icon iconName="user"></my-global-icon>
+        </div>
+      }
+      <div class="m-menu-name-row">
+        <span class="m-menu-name">{{ user?.account?.displayName || user?.username || notLoggedInLabel }}</span>
+        @if (isVip) {
+          <span class="m-menu-vip" i18n="@@boomboom.m.shell.vip">VIP</span>
+        }
+      </div>
+      @if (isLoggedIn) {
+        <div class="m-menu-coins">
+          <my-global-icon iconName="burst"></my-global-icon>
+          <span class="coins">{{ coinsDisplay }}</span>
+          <span class="coins-label" i18n="@@boomboom.m.shell.coins">Coins</span>
+        </div>
+      }
+    </div>
+
+    <div class="m-menu-list">
+      <button class="m-menu-item" (click)="go(['/m/library'])">
+        <my-global-icon iconName="playlists"></my-global-icon>
+        <span i18n="@@boomboom.m.shell.myList">My List</span>
+        <span class="m-menu-chev">›</span>
+      </button>
+      <button class="m-menu-item hot" (click)="go(['/m/recharge'])">
+        <my-global-icon iconName="tip"></my-global-icon>
+        <span i18n="@@boomboom.m.shell.myWallet">My Wallet</span>
+        <span class="m-menu-chev">›</span>
+      </button>
+      <button class="m-menu-item" (click)="go(['/m/history'])">
+        <my-global-icon iconName="history"></my-global-icon>
+        <span i18n="@@boomboom.m.shell.history">History</span>
+      </button>
+      <button class="m-menu-item hot" (click)="go(['/m/create'])">
+        <my-global-icon iconName="burst"></my-global-icon>
+        <span i18n="@@boomboom.m.shell.creatorStudio">Creator Studio</span>
+        <span class="m-menu-chev">›</span>
+      </button>
+      <button class="m-menu-item" (click)="go(['/m/recharge'])">
+        <my-global-icon iconName="award"></my-global-icon>
+        <span i18n="@@boomboom.m.shell.coupons">Coupons</span>
+      </button>
+      <button class="m-menu-item" (click)="go(['/about'])">
+        <my-global-icon iconName="help"></my-global-icon>
+        <span i18n="@@boomboom.m.shell.helpSupport">Help &amp; Support</span>
+      </button>
+
+      <div class="m-menu-divider"></div>
+
+      <button class="m-menu-item" (click)="go(['/m/settings'])">
+        <my-global-icon iconName="cog"></my-global-icon>
+        <span i18n="@@boomboom.m.shell.settings">Settings</span>
+      </button>
+      @if (isLoggedIn) {
+        <button class="m-menu-item" (click)="logout()">
+          <my-global-icon iconName="sign-out"></my-global-icon>
+          <span i18n="@@boomboom.m.shell.logout">Log out</span>
+        </button>
+      }
+    </div>
+  </div>
+}

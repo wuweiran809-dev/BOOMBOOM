@@ -1,0 +1,30 @@
+#!/bin/sh
+
+# PROVIDE: boomboom
+# REQUIRE: LOGIN postgresql nginx redis
+# KEYWORD: shutdown
+
+PATH="/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin"
+
+. /etc/rc.subr
+
+desc="Boomboom daemon"
+name=boomboom
+rcvar=boomboom_enable
+
+load_rc_config $name
+
+: ${boomboom_enable:=NO}
+
+sig_stop=-KILL
+boomboom_chdir="/var/www/boomboom/boomboom-latest"
+boomboom_env="HOME=/var/www/boomboom \
+NODE_ENV=production \
+NODE_CONFIG_DIR=/var/www/boomboom/config \
+USER=boomboom"
+boomboom_user=boomboom
+
+command="/usr/local/bin/node"
+command_args="dist/server >> /var/log/boomboom/${name}.log 2>&1 &"
+
+run_rc_command "$1"

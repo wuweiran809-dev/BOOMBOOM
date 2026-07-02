@@ -1,0 +1,58 @@
+@use '../../shared/m-sub' as sub;
+@use '../../m-tokens' as m;
+
+@include sub.sub-shell;
+
+.m-lib-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 14px 10px;
+  padding: 6px 2px;
+}
+
+.m-lib-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+
+  &:nth-child(3n + 2) { transform: rotate(-1.5deg); }
+  &:nth-child(3n) { transform: rotate(1.5deg); }
+}
+
+.m-lib-avatar {
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  background-color: m.$surface-raised;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: m.$text-muted;
+  @include m.sticker-solid(3px);
+
+  my-global-icon { width: 30px; height: 30px; }
+}
+
+.m-lib-name {
+  max-width: 100%;
+  font-weight: 800;
+  font-size: 13px;
+  text-align: center;
+  color: m.$text;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.m-lib-sub {
+  font-size: 11px;
+  font-weight: 600;
+  color: m.$text-muted;
+}

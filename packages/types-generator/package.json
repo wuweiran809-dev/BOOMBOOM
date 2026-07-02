@@ -1,0 +1,9 @@
+{
+  "name": "@boomboom/boomboom-types-generator",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "dependencies": {
+    "@boomboom/boomboom-core-utils": "workspace:*"
+  }
+}

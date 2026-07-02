@@ -1,0 +1,455 @@
+/* oxlint-disable @typescript-eslint/no-unused-expressions,@typescript-eslint/require-await */
+
+import { getAllFiles } from '@boomboom/boomboom-core-utils'
+import { FileStorage, HttpStatusCode, HttpStatusCodeType, VideoPlaylistPrivacy, VideoPrivacy } from '@boomboom/boomboom-models'
+import { areMockObjectStorageTestsDisabled, buildUUID } from '@boomboom/boomboom-node-utils'
+import {
+  CLICommand,
+  ObjectStorageCommand,
+  BoomBoomServer,
+  cleanupTests,
+  createMultipleServers,
+  doubleFollow,
+  makeRawRequest,
+  setAccessTokensToServers,
+  setDefaultVideoChannel,
+  waitJobs
+} from '@boomboom/boomboom-server-commands'
+import { SQLCommand } from '@tests/shared/sql-command.js'
+import { expect } from 'chai'
+import { createFile } from 'fs-extra/esm'
+import { readdir } from 'fs/promises'
+import { join } from 'path'
+
+describe('Test prune storage CLI', function () {
+  let servers: BoomBoomServer[]
+
+  before(async function () {
+    this.timeout(120000)
+
+    servers = await createMultipleServers(2)
+
+    await setAccessTokensToServers(servers)
+    await setDefaultVideoChannel(servers)
+
+    for (const server of servers) {
+      await server.config.enableMinimumTranscoding({ keepOriginal: true })
+      await server.config.enableUserExport()
+    }
+
+    for (const server of servers) {
+      await server.videos.quickUpload({ name: 'video 1', privacy: VideoPrivacy.PUBLIC })
+      const { uuid } = await server.videos.quickUpload({ name: 'video 2', privacy: VideoPrivacy.PUBLIC })
+
+      await server.videos.quickUpload({ name: 'video 3', privacy: VideoPrivacy.PRIVATE })
+
+      await server.captions.add({
+        language: 'ar',
+        videoId: uuid,
+        fixture: 'subtitle-good1.vtt'
+      })
+
+      await server.users.updateMyAvatar({ fixture: 'avatar.png' })
+
+      await server.playlists.create({
+        attributes: {
+          displayName: 'playlist',
+          privacy: VideoPlaylistPrivacy.PUBLIC,
+          videoChannelId: server.store.channel.id,
+          thumbnailfile: 'custom-thumbnail-280x157.jpg'
+        }
+      })
+    }
+
+    for (const server of servers) {
+      const user = await server.users.getMyInfo()
+
+      await server.userExports.request({ userId: user.id, withVideoFiles: false })
+    }
+
+    await doubleFollow(servers[0], servers[1])
+  })
+
+  describe('On filesystem', function () {
+    const badCommonNames: { [directory: string]: string[] } = {}
+    const badTmpPersistentNames: { [directory: string]: string[] } = {}
+
+    async function assertNotExists (server: BoomBoomServer, directory: string, substring: string) {
+      const files = await readdir(server.servers.buildDirectory(directory))
+
+      for (const f of files) {
+        expect(f).to.not.contain(substring)
+      }
+    }
+
+    async function checkLocalFilesCount () {
+      const server = servers[0]
+
+      const videosCount = await server.servers.countFiles('web-videos')
+      expect(videosCount).to.equal(5) // 2 videos with 2 resolutions + private directory
+
+      const privateVideosCount = await server.servers.countFiles('web-videos/private')
+      expect(privateVideosCount).to.equal(2)
+
+      const torrentsCount = await server.servers.countFiles('torrents')
+      expect(torrentsCount).to.equal(12)
+
+      const thumbnailsCount = await server.servers.countFiles('thumbnails')
+      // 15 of 3 local videos + 1 playlist (5 sizes for each)
+      expect(thumbnailsCount).to.equal(20)
+
+      const avatarsCount = await server.servers.countFiles('avatars')
+      expect(avatarsCount).to.equal(4)
+
+      const hlsRootCount = await server.servers.countFiles(join('streaming-playlists', 'hls'))
+      expect(hlsRootCount).to.equal(3) // 2 videos + private directory
+
+      const hlsPrivateRootCount = await server.servers.countFiles(join('streaming-playlists', 'hls', 'private'))
+      expect(hlsPrivateRootCount).to.equal(1)
+
+      const originalVideoFilesCount = await server.servers.countFiles('original-video-files')
+      expect(originalVideoFilesCount).to.equal(3)
+
+      const storyboardsCount = await server.servers.countFiles('storyboards')
+      expect(storyboardsCount).to.equal(3)
+
+      const captionsCount = await server.servers.countFiles('captions')
+      expect(captionsCount).to.equal(1)
+    }
+
+    async function checkCacheFilesCountBeforeLazyLoad () {
+      expect(await servers[0].servers.countFiles(join('cache', 'avatars'))).to.equal(0)
+      expect(await servers[0].servers.countFiles(join('cache', 'storyboards'))).to.equal(0)
+      expect(await servers[0].servers.countFiles(join('cache', 'thumbnails'))).to.equal(0)
+      expect(await servers[0].servers.countFiles(join('cache', 'video-captions'))).to.equal(0)
+    }
+
+    async function checkCacheFilesCountAfterLazyLoad () {
+      expect(await servers[0].servers.countFiles(join('cache', 'avatars'))).to.equal(4)
+      expect(await servers[0].servers.countFiles(join('cache', 'storyboards'))).to.equal(2)
+      expect(await servers[0].servers.countFiles(join('cache', 'thumbnails'))).to.equal(10)
+      expect(await servers[0].servers.countFiles(join('cache', 'video-captions'))).to.equal(1)
+    }
+
+    it('Should have the files on the disk', async function () {
+      await checkLocalFilesCount()
+      await checkCacheFilesCountBeforeLazyLoad()
+
+      const userExportFilesCount = await servers[0].servers.countFiles('tmp-persistent')
+      expect(userExportFilesCount).to.equal(1)
+    })
+
+    it('Should lazy load remote files', async function () {
+      // Lazy load remote avatars
+      {
+        const account = await servers[0].accounts.get({ accountName: 'root@' + servers[1].host })
+
+        for (const avatar of account.avatars) {
+          await makeRawRequest({ url: avatar.fileUrl, expectedStatus: HttpStatusCode.OK_200 })
+        }
+      }
+
+      // Lazy load video captions, storyboards and thumbnails
+      {
+        const { data: videos } = await servers[0].videos.list()
+        expect(videos).to.have.lengthOf(4)
+
+        for (const video of videos) {
+          const { data: captions } = await servers[0].captions.list({ videoId: video.uuid })
+          const { storyboards } = await servers[0].storyboard.list({ id: video.uuid })
+
+          for (const caption of captions) {
+            await makeRawRequest({ url: caption.fileUrl, expectedStatus: HttpStatusCode.OK_200 })
+          }
+
+          for (const storyboard of storyboards) {
+            await makeRawRequest({ url: storyboard.fileUrl, expectedStatus: HttpStatusCode.OK_200 })
+          }
+
+          for (const thumbnail of video.thumbnails) {
+            await makeRawRequest({ url: thumbnail.fileUrl, expectedStatus: HttpStatusCode.OK_200 })
+          }
+        }
+      }
+
+      await checkLocalFilesCount()
+      await checkCacheFilesCountAfterLazyLoad()
+    })
+
+    it('Should create some dirty files', async function () {
+      for (let i = 0; i < 2; i++) {
+        {
+          const basePublic = servers[0].servers.buildDirectory('web-videos')
+          const basePrivate = servers[0].servers.buildDirectory(join('web-videos', 'private'))
+
+          const n1 = buildUUID() + '.mp4'
+          const n2 = buildUUID() + '.webm'
+
+          await createFile(join(basePublic, n1))
+          await createFile(join(basePublic, n2))
+          await createFile(join(basePrivate, n1))
+          await createFile(join(basePrivate, n2))
+
+          badCommonNames['web-videos'] = [ n1, n2 ]
+        }
+
+        {
+          const base = servers[0].servers.buildDirectory('torrents')
+
+          const n1 = buildUUID() + '-240.torrent'
+          const n2 = buildUUID() + '-480.torrent'
+
+          await createFile(join(base, n1))
+          await createFile(join(base, n2))
+
+          badCommonNames['torrents'] = [ n1, n2 ]
+        }
+
+        for (const name of [ 'thumbnails', 'avatars', 'storyboards' ]) {
+          const base = servers[0].servers.buildDirectory(name)
+
+          const n1 = buildUUID() + '.png'
+          const n2 = buildUUID() + '.jpg'
+
+          await createFile(join(base, n1))
+          await createFile(join(base, n2))
+
+          badCommonNames[name] = [ n1, n2 ]
+        }
+
+        {
+          const directory = join('streaming-playlists', 'hls')
+          const basePublic = servers[0].servers.buildDirectory(directory)
+          const basePrivate = servers[0].servers.buildDirectory(join(directory, 'private'))
+
+          const n1 = buildUUID()
+          await createFile(join(basePublic, n1))
+          await createFile(join(basePrivate, n1))
+          badCommonNames[directory] = [ n1 ]
+        }
+
+        {
+          const base = servers[0].servers.buildDirectory('original-video-files')
+
+          const n1 = buildUUID() + '.mp4'
+          await createFile(join(base, n1))
+
+          badCommonNames['original-video-files'] = [ n1 ]
+        }
+
+        {
+          const base = servers[0].servers.buildDirectory('captions')
+
+          const n1 = buildUUID() + '.vtt'
+          const n2 = buildUUID() + '.srt'
+
+          await createFile(join(base, n1))
+          await createFile(join(base, n2))
+
+          badCommonNames['captions'] = [ n1, n2 ]
+        }
+
+        {
+          const base = servers[0].servers.buildDirectory('tmp-persistent')
+
+          const n1 = 'user-export-1.zip'
+          const n2 = 'user-export-2.zip'
+
+          await createFile(join(base, n1))
+          await createFile(join(base, n2))
+
+          badTmpPersistentNames['tmp-persistent'] = [ n1, n2 ]
+        }
+      }
+    })
+
+    it('Should run prune storage', async function () {
+      this.timeout(30000)
+
+      const env = servers[0].cli.getEnv()
+      await CLICommand.exec(`echo y | ${env} npm run prune-storage`)
+    })
+
+    it('Should have removed files', async function () {
+      await checkLocalFilesCount()
+      await checkCacheFilesCountAfterLazyLoad()
+
+      // Must use the --offline option to also remove files from this directory
+      const userExportFilesCount = await servers[0].servers.countFiles('tmp-persistent')
+      expect(userExportFilesCount).to.equal(3)
+
+      for (const directory of Object.keys(badCommonNames)) {
+        for (const name of badCommonNames[directory]) {
+          await assertNotExists(servers[0], directory, name)
+        }
+      }
+    })
+
+    it('Should remove files with `--offline` option', async function () {
+      const env = servers[0].cli.getEnv()
+
+      await CLICommand.exec(`echo y | ${env} npm run prune-storage -- --offline`)
+
+      await checkLocalFilesCount()
+      await checkCacheFilesCountAfterLazyLoad()
+
+      // Must use the --offline option to also remove files from this directory
+      const userExportFilesCount = await servers[0].servers.countFiles('tmp-persistent')
+      expect(userExportFilesCount).to.equal(1)
+
+      for (const directory of Object.keys(badTmpPersistentNames)) {
+        for (const name of badTmpPersistentNames[directory]) {
+          await assertNotExists(servers[0], directory, name)
+        }
+      }
+    })
+  })
+
+  describe('On object storage', function () {
+    if (areMockObjectStorageTestsDisabled()) return
+
+    const videos: string[] = []
+
+    const objectStorage = new ObjectStorageCommand()
+
+    const videoFileUrls: { [uuid: string]: string[] } = {}
+    const sourceFileUrls: { [uuid: string]: string } = {}
+    const captionFileUrls: { [uuid: string]: { [language: string]: string } } = {}
+
+    let sqlCommand: SQLCommand
+    let rootId: number
+    let captionVideoId: number
+
+    async function execPruneStorage () {
+      const env = servers[0].cli.getEnv(objectStorage.getDefaultMockConfig({ proxifyPrivateFiles: false }))
+
+      await servers[0].cli.execWithEnv(`${env} npm run prune-storage -- -y`)
+    }
+
+    async function checkVideosFiles (uuids: string[], expectedStatus: HttpStatusCodeType) {
+      for (const uuid of uuids) {
+        for (const url of videoFileUrls[uuid]) {
+          await makeRawRequest({ url, token: servers[0].accessToken, expectedStatus })
+        }
+
+        await makeRawRequest({ url: sourceFileUrls[uuid], redirects: 1, token: servers[0].accessToken, expectedStatus })
+      }
+    }
+
+    async function checkCaptionFiles (uuids: string[], languages: string[], expectedStatus: HttpStatusCodeType) {
+      for (const uuid of uuids) {
+        for (const language of languages) {
+          await makeRawRequest({ url: captionFileUrls[uuid][language], token: servers[0].accessToken, expectedStatus })
+        }
+      }
+    }
+
+    async function checkUserExport (expectedStatus: HttpStatusCodeType) {
+      const { data: userExports } = await servers[0].userExports.list({ userId: rootId })
+      const userExportUrl = userExports[0].privateDownloadUrl
+
+      await makeRawRequest({ url: userExportUrl, token: servers[0].accessToken, redirects: 1, expectedStatus })
+    }
+
+    before(async function () {
+      this.timeout(120000)
+
+      sqlCommand = new SQLCommand(servers[0])
+
+      await objectStorage.prepareDefaultMockBuckets()
+
+      await servers[0].kill()
+      await servers[0].run(objectStorage.getDefaultMockConfig({ proxifyPrivateFiles: false }))
+
+      {
+        const { uuid } = await servers[0].videos.quickUpload({ name: 's3 video 1', privacy: VideoPrivacy.PUBLIC })
+        videos.push(uuid)
+      }
+
+      {
+        const { uuid } = await servers[0].videos.quickUpload({ name: 's3 video 2', privacy: VideoPrivacy.PUBLIC })
+        videos.push(uuid)
+      }
+
+      {
+        const { id, uuid } = await servers[0].videos.quickUpload({ name: 's3 video 3', privacy: VideoPrivacy.PRIVATE })
+
+        await servers[0].captions.add({ language: 'ar', videoId: uuid, fixture: 'subtitle-good1.vtt' })
+
+        await servers[0].captions.add({ language: 'zh', videoId: uuid, fixture: 'subtitle-good1.vtt' })
+        captionVideoId = id
+
+        videos.push(uuid)
+      }
+
+      const user = await servers[0].users.getMyInfo()
+      rootId = user.id
+
+      await servers[0].userExports.deleteAllArchives({ userId: rootId })
+      await servers[0].userExports.request({ userId: rootId, withVideoFiles: false })
+
+      await waitJobs([ servers[0] ])
+
+      // Grab all file URLs
+      for (const uuid of videos) {
+        const video = await servers[0].videos.getWithToken({ id: uuid })
+
+        videoFileUrls[uuid] = getAllFiles(video).map(f => f.fileUrl)
+
+        const source = await servers[0].videos.getSource({ id: uuid })
+        sourceFileUrls[uuid] = source.fileDownloadUrl
+
+        const { data: captions } = await servers[0].captions.list({ videoId: uuid, token: servers[0].accessToken })
+        if (!captionFileUrls[uuid]) captionFileUrls[uuid] = {}
+
+        for (const caption of captions) {
+          captionFileUrls[uuid][caption.language.id] = caption.fileUrl
+        }
+      }
+    })
+
+    it('Should have the files on object storage', async function () {
+      await checkVideosFiles(videos, HttpStatusCode.OK_200)
+      await checkUserExport(HttpStatusCode.OK_200)
+      await checkCaptionFiles([ videos[2] ], [ 'ar', 'zh' ], HttpStatusCode.OK_200)
+    })
+
+    it('Should run prune-storage script on videos', async function () {
+      await sqlCommand.setVideoFileStorageOf(videos[1], FileStorage.FILE_SYSTEM)
+      await sqlCommand.setVideoFileStorageOf(videos[2], FileStorage.FILE_SYSTEM)
+
+      await execPruneStorage()
+
+      await checkVideosFiles([ videos[1], videos[2] ], HttpStatusCode.NOT_FOUND_404)
+      await checkVideosFiles([ videos[0] ], HttpStatusCode.OK_200)
+
+      await checkUserExport(HttpStatusCode.OK_200)
+      await checkCaptionFiles([ videos[2] ], [ 'ar', 'zh' ], HttpStatusCode.OK_200)
+    })
+
+    it('Should run prune-storage script on exports', async function () {
+      await sqlCommand.setUserExportStorageOf(rootId, FileStorage.FILE_SYSTEM)
+      await execPruneStorage()
+
+      await checkUserExport(HttpStatusCode.NOT_FOUND_404)
+      await checkCaptionFiles([ videos[2] ], [ 'ar', 'zh' ], HttpStatusCode.OK_200)
+    })
+
+    it('Should run prune-storage script on captions', async function () {
+      await sqlCommand.setCaptionStorageOf(captionVideoId, 'zh', FileStorage.FILE_SYSTEM)
+      await execPruneStorage()
+
+      await checkCaptionFiles([ videos[2] ], [ 'ar' ], HttpStatusCode.OK_200)
+      await checkCaptionFiles([ videos[2] ], [ 'zh' ], HttpStatusCode.NOT_FOUND_404)
+    })
+
+    after(async function () {
+      await objectStorage.cleanupMock()
+      await sqlCommand.cleanup()
+    })
+  })
+
+  after(async function () {
+    await cleanupTests(servers)
+  })
+})

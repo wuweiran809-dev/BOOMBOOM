@@ -1,0 +1,6 @@
+FROM nginx:alpine
+
+COPY ./support/docker/production/entrypoint.nginx.sh /docker-entrypoint.d/99-entrypoint.nginx.sh
+RUN chmod +x /docker-entrypoint.d/99-entrypoint.nginx.sh
+
+EXPOSE 80 443

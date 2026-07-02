@@ -1,0 +1,70 @@
+<div class="m-create">
+  <div class="m-create-halftone"></div>
+
+  <!-- header -->
+  <div class="m-create-head">
+    <button class="m-create-back" (click)="back()">
+      <my-global-icon iconName="chevron-left"></my-global-icon>
+    </button>
+    <span class="m-create-htitle" i18n="@@boomboom.m.create.header">Creator Studio</span>
+  </div>
+
+  <!-- hero -->
+  <div class="m-create-hero">
+    <div class="m-create-badge"><span>爆</span></div>
+    <h1 class="m-create-title" i18n="@@boomboom.m.create.title">AI Drama Studio</h1>
+    <p class="m-create-sub" i18n="@@boomboom.m.create.sub2">Generate with AI, or upload your own — then publish to BoomBoom.</p>
+
+    <div class="m-create-ctas">
+      <button class="m-create-cta primary" (click)="startCreate()">
+        <my-global-icon iconName="burst"></my-global-icon>
+        <span i18n="@@boomboom.m.create.genAi">Generate with AI</span>
+      </button>
+      <button class="m-create-cta upload" (click)="goUpload()">
+        <my-global-icon iconName="upload"></my-global-icon>
+        <span i18n="@@boomboom.m.create.upload">Upload your own</span>
+      </button>
+    </div>
+
+    <div class="m-create-attrib" i18n="@@boomboom.m.create.attrib2">“Generate with AI” opens the BoomBoom generation platform · your creations are tagged back to your account.</div>
+  </div>
+
+  <!-- perks -->
+  <div class="m-create-perks">
+    <div class="m-perk">
+      <my-global-icon iconName="burst"></my-global-icon>
+      <span i18n="@@boomboom.m.create.perk1">AI script & footage</span>
+    </div>
+    <div class="m-perk">
+      <my-global-icon iconName="videos"></my-global-icon>
+      <span i18n="@@boomboom.m.create.perk2">One-tap publish</span>
+    </div>
+    <div class="m-perk">
+      <my-global-icon iconName="tip"></my-global-icon>
+      <span i18n="@@boomboom.m.create.perk3">Earn from views</span>
+    </div>
+  </div>
+
+  <!-- my works -->
+  <div class="m-create-works">
+    <div class="m-create-works-head" i18n="@@boomboom.m.create.myWorks">My generated works</div>
+
+    @if (!isConfigured) {
+      <div class="m-create-empty" i18n="@@boomboom.m.create.notConfigured">The generation platform is not connected yet.</div>
+    } @else if (loadingWorks()) {
+      <div class="m-create-empty" i18n="@@boomboom.m.create.loading">Loading…</div>
+    } @else if (works().length === 0) {
+      <div class="m-create-empty" i18n="@@boomboom.m.create.noWorks">No works yet — tap “Start creating”.</div>
+    } @else {
+      <div class="m-create-grid">
+        @for (w of works(); track w.id) {
+          <div class="m-create-work">
+            <div class="m-create-work-cover" [style.background-image]="w.coverUrl ? 'url(' + w.coverUrl + ')' : ''"></div>
+            <div class="m-create-work-title">{{ w.title }}</div>
+            <div class="m-create-work-status" [attr.data-status]="w.status">{{ w.status }}</div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>

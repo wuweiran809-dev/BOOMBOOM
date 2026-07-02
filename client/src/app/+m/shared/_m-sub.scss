@@ -1,0 +1,82 @@
+@use '../m-tokens' as m;
+
+// Shared shell for /m sub-pages (history / likes / library / recharge):
+// fixed top bar with back button + title, scrollable body.
+@mixin sub-shell {
+  :host {
+    display: block;
+    min-height: 100dvh;
+    background: m.$bg;
+    color: m.$text;
+  }
+
+  .m-sub-top {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 54px;
+    padding: 0 12px;
+    background: rgba(13, 17, 23, 0.92);
+    backdrop-filter: blur(10px);
+    border-bottom: 2px solid #000;
+  }
+
+  .m-sub-back {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    color: m.$text;
+    background: m.$surface-raised;
+    border-radius: 10px;
+    @include m.sticker-solid(3px);
+
+    my-global-icon { width: 20px; height: 20px; }
+  }
+
+  .m-sub-title {
+    font-family: m.$font-display;
+    font-size: 22px;
+    letter-spacing: 0.5px;
+    transform: rotate(-1.5deg);
+    color: #fff;
+    text-shadow: 2px 2px 0 m.$accent;
+  }
+
+  .m-sub-spacer { flex: 1; }
+
+  .m-sub-body {
+    padding: 14px 12px calc(40px + env(safe-area-inset-bottom));
+  }
+
+  .m-sub-loading,
+  .m-sub-empty {
+    margin-top: 60px;
+    text-align: center;
+    color: m.$text-muted;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .m-sub-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+
+    my-global-icon { width: 46px; height: 46px; opacity: 0.5; }
+  }
+
+  .m-sub-empty-cta {
+    padding: 11px 22px;
+    background: m.$logo-grad;
+    color: #fff;
+    font-weight: 800;
+    border-radius: 999px;
+    @include m.sticker-solid(3px, -2deg);
+  }
+}

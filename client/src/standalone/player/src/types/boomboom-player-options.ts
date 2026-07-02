@@ -1,0 +1,136 @@
+import { LiveVideoLatencyModeType, PlayerMode, PlayerTheme, Thumbnail, VideoChapter, VideoFile } from '@boomboom/boomboom-models'
+import { PluginsManager } from '@root-helpers/plugins-manager'
+import { BoomBoomDockPluginOptions } from '../shared/dock/boomboom-dock-plugin'
+import { PlaylistPluginOptions, VideoJSCaption, VideojsPlayer, VideoJSStoryboard } from './boomboom-videojs-typings'
+
+export type BoomBoomPlayerConstructorOptions = {
+  playerElement: () => HTMLVideoElement
+
+  controls: boolean
+  controlBar: boolean
+
+  muted: boolean
+  loop: boolean
+
+  boomboomLink: () => boolean
+
+  playbackRate?: number
+
+  enableHotkeys: boolean
+  inactivityTimeout: number
+
+  videoViewIntervalMs: number
+
+  instanceName: string
+
+  theaterButton: boolean
+
+  authorizationHeader: () => string
+
+  metricsUrl: string
+  metricsInterval: number
+
+  serverUrl: string
+
+  errorNotifier: (message: string) => void
+
+  // Current web browser language
+  language: string
+
+  pluginsManager: PluginsManager
+
+  stunServers: string[]
+
+  autoPlayerRatio?: {
+    cssRatioVariable: string
+    cssPlayerPortraitModeVariable: string
+  }
+}
+
+export type BoomBoomPlayerLoadOptions = {
+  mode: PlayerMode
+
+  theme: PlayerTheme
+
+  startTime?: number | string
+  stopTime?: number | string
+
+  autoplay: boolean
+  forceAutoplay: boolean
+
+  thumbnails: Thumbnail[]
+
+  subtitle?: string
+  videoViewUrl: string
+
+  embedUrl: string
+  embedTitle: string
+
+  isLive: boolean
+
+  liveOptions?: {
+    latencyMode: LiveVideoLatencyModeType
+
+    dvrEnabled: boolean
+  }
+
+  videoCaptions: VideoJSCaption[]
+  videoChapters: VideoChapter[]
+  storyboard: VideoJSStoryboard
+
+  videoUUID: string
+  videoShortUUID: string
+
+  duration: number
+  videoRatio: number
+
+  requiresUserAuth: boolean
+  videoFileToken: () => string
+  requiresPassword: boolean
+  videoPassword: () => string
+
+  nsfwWarning?: {
+    flags: number
+    summary: string
+  }
+
+  nextVideo: {
+    enabled: boolean
+    getVideoTitle: () => string
+    handler?: () => void
+    displayControlBarButton: boolean
+  }
+
+  previousVideo: {
+    enabled: boolean
+    handler?: () => void
+    displayControlBarButton: boolean
+  }
+
+  upnext?: {
+    isEnabled: () => boolean
+    isSuspended: (player: VideojsPlayer) => boolean
+    timeout: number
+  }
+
+  dock?: BoomBoomDockPluginOptions
+
+  playlist?: PlaylistPluginOptions
+
+  p2pEnabled: boolean
+
+  hls?: HLSOptions
+  webVideo?: WebVideoOptions
+}
+
+export type WebVideoOptions = {
+  videoFiles: VideoFile[]
+}
+
+export type HLSOptions = {
+  playlistUrl: string
+  segmentsSha256Url: string
+  trackerAnnounce: string[]
+  redundancyBaseUrls: string[]
+  videoFiles: VideoFile[]
+}

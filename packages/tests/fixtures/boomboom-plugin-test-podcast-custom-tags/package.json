@@ -1,0 +1,19 @@
+{
+  "name": "boomboom-plugin-test-podcast-custom-tags",
+  "version": "0.0.1",
+  "description": "Plugin test custom tags in Podcast RSS feeds",
+  "engine": {
+    "boomboom": ">=1.3.0"
+  },
+  "keywords": [
+    "boomboom",
+    "plugin"
+  ],
+  "homepage": "https://github.com/Chocobozzz/BoomBoom",
+  "author": "Chocobozzz",
+  "bugs": "https://github.com/Chocobozzz/BoomBoom/issues",
+  "library": "./main.js",
+  "staticDirs": {},
+  "css": [],
+  "clientScripts": []
+}

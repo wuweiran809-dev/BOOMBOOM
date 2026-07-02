@@ -1,0 +1,29 @@
+@if (isMobile()) {
+  <nav class="mobile-tab-bar">
+    <a routerLink="/feed" routerLinkActive="active" class="tab-item">
+      <my-global-icon iconName="home"></my-global-icon>
+      <span i18n>首页</span>
+    </a>
+
+    <a routerLink="/search" routerLinkActive="active" class="tab-item">
+      <my-global-icon iconName="search"></my-global-icon>
+      <span i18n>发现</span>
+    </a>
+
+    <button class="tab-item upload-btn" (click)="onUploadClick()">
+      <div class="upload-icon">
+        <my-global-icon iconName="add"></my-global-icon>
+      </div>
+    </button>
+
+    <a routerLink="/my-account/notifications" routerLinkActive="active" class="tab-item">
+      <my-global-icon iconName="bell"></my-global-icon>
+      <span i18n>通知</span>
+    </a>
+
+    <a [routerLink]="isLoggedIn() ? '/my-account/me' : '/login'" routerLinkActive="active" class="tab-item">
+      <my-global-icon iconName="user"></my-global-icon>
+      <span i18n>我</span>
+    </a>
+  </nav>
+}

@@ -1,0 +1,158 @@
+@use '../../m-tokens' as m;
+
+:host { display: block; }
+
+.m-auth {
+  position: relative;
+  min-height: 100vh;
+  background: m.$bg;
+  overflow: hidden;
+  padding: 44px 28px 40px;
+}
+
+.m-auth-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(420px 300px at 20% 6%, rgba(255, 165, 2, 0.18), transparent 70%);
+}
+
+.m-auth-halftone {
+  position: absolute;
+  top: 40px;
+  right: 0;
+  width: 160px;
+  height: 180px;
+  opacity: 0.4;
+  @include m.halftone(m.$accent2, 13px);
+  pointer-events: none;
+}
+
+.m-auth-body {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+}
+
+.m-auth-back {
+  width: 40px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+
+  my-global-icon {
+    width: 26px;
+    height: 26px;
+    color: m.$text;
+  }
+}
+
+.m-auth-title {
+  font-family: m.$font-display;
+  font-size: 40px;
+  color: #fff;
+  margin: 12px 0 0;
+  transform: rotate(-2deg);
+  text-shadow: 3px 3px 0 m.$accent2;
+}
+
+.m-auth-sub {
+  font-size: 15px;
+  color: m.$text-secondary;
+  margin: 12px 0 0;
+
+  b { color: m.$accent2; font-weight: 800; }
+}
+
+.m-auth-error {
+  margin-top: 18px;
+  padding: 10px 14px;
+  background: m.$accent-soft;
+  border: 2px solid m.$accent;
+  color: #fff;
+  font-size: 13px;
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.5);
+}
+
+.m-auth-fields {
+  margin-top: 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.m-field {
+  height: 52px;
+  background: m.$surface-sunken;
+  border: 2px solid #000;
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 0 16px;
+
+  > my-global-icon {
+    width: 19px;
+    height: 19px;
+    color: m.$text-muted;
+    flex: none;
+  }
+
+  input {
+    flex: 1;
+    min-width: 0;
+    background: none;
+    border: none;
+    outline: none;
+    color: m.$text;
+    font-size: 15px;
+
+    &::placeholder { color: m.$text-muted; }
+  }
+
+  .m-field-eye {
+    background: none;
+    border: none;
+    padding: 0;
+    display: flex;
+
+    my-global-icon {
+      width: 19px;
+      height: 19px;
+      color: m.$text-muted;
+    }
+  }
+}
+
+.m-auth-submit {
+  height: 52px;
+  margin-top: 24px;
+  background: m.$accent;
+  color: #fff;
+  font-family: m.$font-display;
+  font-size: 22px;
+  cursor: pointer;
+  transform: rotate(-1deg);
+  @include m.sticker-solid(5px);
+
+  &.gold {
+    background: m.$gold-grad;
+    color: m.$ink;
+  }
+
+  &:disabled { opacity: 0.6; }
+}
+
+.m-auth-switch {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 13.5px;
+  color: m.$text-secondary;
+
+  a {
+    color: m.$accent;
+    font-weight: 700;
+    text-decoration: none;
+  }
+}

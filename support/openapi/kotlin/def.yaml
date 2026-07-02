@@ -1,0 +1,6 @@
+# https://openapi-generator.tech/docs/generators/kotlin
+
+artifactId: boomboom-api
+groupId: org.boomboom
+packageName: org.boomboom.client
+

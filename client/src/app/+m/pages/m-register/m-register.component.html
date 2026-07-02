@@ -1,0 +1,47 @@
+<div class="m-auth">
+  <div class="m-auth-glow gold"></div>
+  <div class="m-auth-halftone"></div>
+
+  <div class="m-auth-body">
+    <a routerLink="/m/login" class="m-auth-back">
+      <my-global-icon iconName="chevron-left"></my-global-icon>
+    </a>
+
+    <h1 class="m-auth-title" i18n="@@boomboom.m.register.title">Create account</h1>
+    <p class="m-auth-sub"><span i18n="@@boomboom.m.register.subPre">Get</span> <b i18n="@@boomboom.m.register.subCoins">+300 Coins</b> <span i18n="@@boomboom.m.register.subPost">to unlock your first hit</span></p>
+
+    @if (error()) {
+      <div class="m-auth-error">{{ error() }}</div>
+    }
+
+    <div class="m-auth-fields">
+      <div class="m-field">
+        <my-global-icon iconName="user"></my-global-icon>
+        <input type="text" [(ngModel)]="username" i18n-placeholder="@@boomboom.m.register.usernamePlaceholder" placeholder="Username (letters/numbers)" autocomplete="username" />
+      </div>
+      <div class="m-field">
+        <my-global-icon iconName="bell"></my-global-icon>
+        <input type="email" [(ngModel)]="email" i18n-placeholder="@@boomboom.m.register.emailPlaceholder" placeholder="Email" autocomplete="email" />
+      </div>
+      <div class="m-field">
+        <my-global-icon iconName="shield"></my-global-icon>
+        <input [type]="showPassword() ? 'text' : 'password'" [(ngModel)]="password" i18n-placeholder="@@boomboom.m.register.passwordPlaceholder" placeholder="Password (min 6 chars)" autocomplete="new-password" />
+        <button class="m-field-eye" (click)="togglePassword()">
+          <my-global-icon [iconName]="showPassword() ? 'eye-open' : 'eye-close'"></my-global-icon>
+        </button>
+      </div>
+      <div class="m-field">
+        <my-global-icon iconName="award"></my-global-icon>
+        <input type="text" [(ngModel)]="invite" i18n-placeholder="@@boomboom.m.register.invitePlaceholder" placeholder="Invite code (optional)" />
+      </div>
+    </div>
+
+    <button class="m-auth-submit gold" [disabled]="submitting()" (click)="register()">
+      @if (submitting()) { <span i18n="@@boomboom.m.register.submitting">Signing up…</span> } @else { <span i18n="@@boomboom.m.register.submit">Sign up & get coins</span> }
+    </button>
+
+    <div class="m-auth-switch">
+      <span i18n="@@boomboom.m.register.haveAccount">Already have an account?</span> <a routerLink="/m/login" i18n="@@boomboom.m.register.login">Log in</a>
+    </div>
+  </div>
+</div>

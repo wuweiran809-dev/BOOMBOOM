@@ -1,0 +1,352 @@
+import { buildAspectRatio } from '@boomboom/boomboom-core-utils'
+import {
+  LiveVideoCreate,
+  LiveVideoLatencyMode,
+  NSFWFlag,
+  BoomBoomError,
+  VideoChannelActivityAction,
+  VideoCreate,
+  VideoEmbedPrivacyPolicy,
+  VideoEmbedPrivacyPolicyType,
+  VideoPrivacy,
+  VideoStateType
+} from '@boomboom/boomboom-models'
+import { buildUUID } from '@boomboom/boomboom-node-utils'
+import { retryTransactionWrapper } from '@server/helpers/database-utils.js'
+import { LoggerTagsFn, logger } from '@server/helpers/logger.js'
+import { CONFIG } from '@server/initializers/config.js'
+import { sequelizeTypescript } from '@server/initializers/database.js'
+import { getServerAccount } from '@server/models/application/application.js'
+import { ScheduleVideoUpdateModel } from '@server/models/video/schedule-video-update.js'
+import { VideoChannelActivityModel } from '@server/models/video/video-channel-activity.js'
+import { VideoLiveReplaySettingModel } from '@server/models/video/video-live-replay-setting.js'
+import { VideoLiveScheduleModel } from '@server/models/video/video-live-schedule.js'
+import { VideoLiveModel } from '@server/models/video/video-live.js'
+import { VideoPasswordModel } from '@server/models/video/video-password.js'
+import { VideoModel } from '@server/models/video/video.js'
+import { MChannel, MChannelAccountLight, MUserAccountId, MVideoFile, MVideoFull } from '@server/types/models/index.js'
+import { FilteredModelAttributes } from '@server/types/sequelize.js'
+import { FfprobeData } from 'fluent-ffmpeg'
+import { move } from 'fs-extra/esm'
+import { getLocalVideoActivityPubUrl } from './activitypub/url.js'
+import { federateVideoIfNeeded } from './activitypub/videos/federate.js'
+import { AutomaticTagger } from './automatic-tags/automatic-tagger.js'
+import { setAndSaveVideoAutomaticTags } from './automatic-tags/automatic-tags.js'
+import { Hooks } from './plugins/hooks.js'
+import { createLocalVideoThumbnailsFromImage, createLocalVideoThumbnailsFromVideo } from './thumbnail.js'
+import { autoBlacklistVideoIfNeeded } from './video-blacklist.js'
+import { replaceChapters, replaceChaptersFromDescriptionIfNeeded } from './video-chapters.js'
+import { buildNewFile, createVideoSource } from './video-file.js'
+import { addVideoJobsAfterCreation } from './video-jobs.js'
+import { VideoPathManager } from './video-path-manager.js'
+import { setVideoTags } from './video.js'
+
+type VideoAttributes = Omit<VideoCreate, 'channelId'> & {
+  duration: number
+  isLive: boolean
+  state: VideoStateType
+  inputFilename: string
+
+  firstPublishedAt?: string
+
+  embedPrivacyPolicy?: VideoEmbedPrivacyPolicyType
+}
+
+type LiveAttributes =
+  & Pick<
+    LiveVideoCreate,
+    | 'permanentLive'
+    | 'latencyMode'
+    | 'dvrWindow'
+    | 'saveReplay'
+    | 'replaySettings'
+    | 'schedules'
+  >
+  & {
+    streamKey?: string
+  }
+
+export type ThumbnailOption = {
+  path: string
+  automaticallyGenerated: boolean
+  keepOriginal: boolean
+}
+
+type ChaptersOption = { timecode: number, title: string }[]
+
+type VideoAttributeHookFilter =
+  | 'filter:api.video.user-import.video-attribute.result'
+  | 'filter:api.video.upload.video-attribute.result'
+  | 'filter:api.video.live.video-attribute.result'
+
+export class LocalVideoCreator {
+  private readonly lTags: LoggerTagsFn
+
+  private readonly videoFilePath: string | undefined
+  private readonly videoFileProbe: FfprobeData
+
+  private readonly videoAttributes: VideoAttributes
+  private readonly liveAttributes: LiveAttributes | undefined
+
+  private readonly channel: MChannelAccountLight
+  private readonly videoAttributeResultHook: VideoAttributeHookFilter
+
+  private video: MVideoFull
+  private videoFile: MVideoFile
+  private videoPath: string
+
+  constructor (
+    private readonly options: {
+      lTags: LoggerTagsFn
+
+      videoFile: {
+        path: string
+        probe: FfprobeData
+      }
+
+      videoAttributes: VideoAttributes
+      liveAttributes: LiveAttributes
+
+      channel: MChannelAccountLight
+      user: MUserAccountId
+      videoAttributeResultHook: VideoAttributeHookFilter
+      thumbnail: ThumbnailOption
+
+      chapters: ChaptersOption | undefined
+      fallbackChapters: {
+        fromDescription: boolean
+        finalFallback: ChaptersOption | undefined
+      }
+    }
+  ) {
+    this.videoFilePath = options.videoFile?.path
+    this.videoFileProbe = options.videoFile?.probe
+
+    this.videoAttributes = options.videoAttributes
+    this.liveAttributes = options.liveAttributes
+
+    this.channel = options.channel
+
+    this.videoAttributeResultHook = options.videoAttributeResultHook
+
+    this.lTags = options.lTags
+  }
+
+  async create () {
+    this.video = new VideoModel(
+      await Hooks.wrapObject(this.buildVideo(this.videoAttributes, this.channel), this.videoAttributeResultHook)
+    ) as MVideoFull
+
+    this.video.VideoChannel = this.channel
+    this.video.url = getLocalVideoActivityPubUrl(this.video)
+
+    if (this.videoFilePath) {
+      this.videoFile = await buildNewFile({ path: this.videoFilePath, mode: 'web-video', ffprobe: this.videoFileProbe })
+
+      this.videoPath = VideoPathManager.Instance.getFSVideoFileOutputPath(this.video, this.videoFile)
+      await move(this.videoFilePath, this.videoPath)
+
+      this.video.aspectRatio = buildAspectRatio({ width: this.videoFile.width, height: this.videoFile.height })
+    }
+
+    const thumbnails = await this.createThumbnails()
+
+    await retryTransactionWrapper(() => {
+      return sequelizeTypescript.transaction(async transaction => {
+        await this.video.save({ transaction })
+
+        await VideoChannelActivityModel.addVideoActivity({
+          action: VideoChannelActivityAction.CREATE,
+          user: this.options.user,
+          channel: this.channel,
+          video: this.video,
+          transaction
+        })
+
+        await this.video.replaceAndSaveThumbnails(thumbnails, transaction)
+
+        if (this.videoFile) {
+          this.videoFile.videoId = this.video.id
+          await this.videoFile.save({ transaction })
+
+          this.video.VideoFiles = [ this.videoFile ]
+        }
+
+        await setVideoTags({ video: this.video, tags: this.videoAttributes.tags, transaction })
+
+        const automaticTagsByAccount = await new AutomaticTagger().buildVideoAutomaticTags({
+          serverAccount: await getServerAccount(),
+          video: this.video,
+          transaction
+        })
+        await setAndSaveVideoAutomaticTags({ video: this.video, automaticTagsByAccount, transaction })
+
+        // Schedule an update in the future?
+        if (this.videoAttributes.scheduleUpdate) {
+          await ScheduleVideoUpdateModel.create({
+            videoId: this.video.id,
+            updateAt: new Date(this.videoAttributes.scheduleUpdate.updateAt),
+            privacy: this.videoAttributes.scheduleUpdate.privacy || null
+          }, { transaction })
+        }
+
+        if (this.options.chapters) {
+          await replaceChapters({ video: this.video, chapters: this.options.chapters, transaction })
+        } else if (this.options.fallbackChapters.fromDescription) {
+          if (!await replaceChaptersFromDescriptionIfNeeded({ newDescription: this.video.description, video: this.video, transaction })) {
+            await replaceChapters({ video: this.video, chapters: this.options.fallbackChapters.finalFallback, transaction })
+          }
+        }
+
+        await autoBlacklistVideoIfNeeded({
+          video: this.video,
+          user: this.options.user,
+          automaticTagsByAccount,
+          isRemote: false,
+          isNew: true,
+          isNewFile: true,
+          transaction
+        })
+
+        if (this.videoAttributes.privacy === VideoPrivacy.PASSWORD_PROTECTED) {
+          await VideoPasswordModel.addPasswords(this.videoAttributes.videoPasswords, this.video.id, transaction)
+        }
+
+        if (this.videoAttributes.isLive) {
+          const videoLive = new VideoLiveModel({
+            saveReplay: this.liveAttributes.saveReplay || CONFIG.DEFAULTS.LIVE.SAVE_REPLAY,
+            permanentLive: this.liveAttributes.permanentLive || false,
+            latencyMode: this.liveAttributes.latencyMode || LiveVideoLatencyMode.DEFAULT,
+            dvrWindow: this.liveAttributes.dvrWindow ?? CONFIG.LIVE.DVR.MAX_WINDOW,
+            streamKey: this.liveAttributes.streamKey || buildUUID()
+          })
+
+          if (videoLive.saveReplay) {
+            const replaySettings = new VideoLiveReplaySettingModel({
+              privacy: this.liveAttributes.replaySettings?.privacy ?? this.video.privacy
+            })
+            await replaySettings.save({ transaction })
+
+            videoLive.replaySettingId = replaySettings.id
+          }
+
+          videoLive.videoId = this.video.id
+          this.video.VideoLive = await videoLive.save({ transaction })
+
+          if (this.liveAttributes.schedules) {
+            this.video.VideoLive.LiveSchedules = await VideoLiveScheduleModel.addToLiveId(
+              this.video.VideoLive.id,
+              this.liveAttributes.schedules.map(s => s.startAt),
+              transaction
+            )
+          }
+        }
+
+        if (this.videoFile) {
+          transaction.afterCommit(() => {
+            addVideoJobsAfterCreation({
+              video: this.video,
+              videoFile: this.videoFile,
+              generateTranscription: this.videoAttributes.generateTranscription ?? true
+            }).catch(err => logger.error('Cannot build new video jobs of %s.', this.video.uuid, { err, ...this.lTags(this.video.uuid) }))
+          })
+        } else {
+          await federateVideoIfNeeded(this.video, true, transaction)
+        }
+      }).catch(err => {
+        // Reset elements to reinsert them in the database
+        this.video.isNewRecord = true
+        if (this.videoFile) this.videoFile.isNewRecord = true
+
+        for (const t of thumbnails) {
+          t.isNewRecord = true
+        }
+
+        throw err
+      })
+    })
+
+    if (this.videoAttributes.inputFilename) {
+      await createVideoSource({
+        inputFilename: this.videoAttributes.inputFilename,
+        inputPath: this.videoPath,
+        inputProbe: this.videoFileProbe,
+        video: this.video
+      })
+    }
+
+    // Channel has a new content, set as updated
+    await this.channel.setAsUpdated()
+
+    return { video: this.video, videoFile: this.videoFile }
+  }
+
+  private async createThumbnails () {
+    if (this.options.thumbnail) {
+      return createLocalVideoThumbnailsFromImage({
+        automaticallyGenerated: this.options.thumbnail.automaticallyGenerated,
+        keepOriginal: this.options.thumbnail.keepOriginal,
+        inputPath: this.options.thumbnail.path,
+        video: this.video
+      }).catch(err => {
+        // oxlint-disable-next-line @typescript-eslint/only-throw-error
+        throw BoomBoomError.fromError(err, 'INVALID_IMAGE_FILE')
+      })
+    }
+
+    return createLocalVideoThumbnailsFromVideo({
+      video: this.video,
+      videoFile: this.videoFile,
+      ffprobe: this.videoFileProbe
+    })
+  }
+
+  private buildVideo (videoInfo: VideoAttributes, channel: MChannel) {
+    const privacy = videoInfo.privacy || VideoPrivacy.PRIVATE
+
+    const now = new Date()
+
+    let firstPublishedAt: Date = null
+    if (videoInfo.firstPublishedAt) {
+      firstPublishedAt = new Date(videoInfo.firstPublishedAt)
+    } else if (privacy !== VideoPrivacy.PRIVATE) {
+      firstPublishedAt = now
+    }
+
+    return {
+      name: videoInfo.name,
+      state: videoInfo.state,
+      remote: false,
+      category: videoInfo.category,
+      licence: videoInfo.licence ?? CONFIG.DEFAULTS.PUBLISH.LICENCE,
+      language: videoInfo.language,
+      commentsPolicy: videoInfo.commentsPolicy ?? CONFIG.DEFAULTS.PUBLISH.COMMENTS_POLICY,
+      downloadEnabled: videoInfo.downloadEnabled ?? CONFIG.DEFAULTS.PUBLISH.DOWNLOAD_ENABLED,
+      waitTranscoding: videoInfo.waitTranscoding || false,
+
+      embedPrivacyPolicy: videoInfo.embedPrivacyPolicy ?? VideoEmbedPrivacyPolicy.ALL_ALLOWED,
+
+      nsfw: videoInfo.nsfw || false,
+      nsfwSummary: videoInfo.nsfwSummary,
+      nsfwFlags: videoInfo.nsfwFlags || NSFWFlag.NONE,
+
+      description: videoInfo.description,
+      support: videoInfo.support,
+      privacy,
+      isLive: videoInfo.isLive,
+      channelId: channel.id,
+      originallyPublishedAt: videoInfo.originallyPublishedAt
+        ? new Date(videoInfo.originallyPublishedAt)
+        : null,
+
+      firstPublishedAt,
+
+      publishedAt: this.videoAttributes.scheduleUpdate?.updateAt
+        ? new Date(this.videoAttributes.scheduleUpdate?.updateAt)
+        : now,
+
+      uuid: buildUUID(),
+      duration: videoInfo.duration
+    } satisfies FilteredModelAttributes<VideoModel>
+  }
+}

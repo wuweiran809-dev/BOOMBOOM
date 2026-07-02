@@ -1,0 +1,327 @@
+@use '_variables' as *;
+@use '_mixins' as *;
+
+$bb-accent: #FF4757;
+$bb-accent2: #FFA502;
+$bb-bg: #0D1117;
+$bb-surface: #161B22;
+$bb-sunken: #10151C;
+$bb-border: rgba(255, 255, 255, 0.07);
+$bb-border-strong: rgba(255, 255, 255, 0.14);
+$bb-text-primary: rgba(255, 255, 255, 0.95);
+$bb-text-secondary: rgba(255, 255, 255, 0.6);
+$bb-text-muted: rgba(255, 255, 255, 0.4);
+
+.bb-login-page {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 28px;
+  overflow: hidden;
+}
+
+.bb-login-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(420px 300px at 78% 8%, rgba(255, 71, 87, 0.22), transparent 70%),
+    radial-gradient(360px 260px at 10% 30%, rgba(255, 165, 2, 0.12), transparent 70%);
+}
+
+.bb-login-content {
+  position: relative;
+  width: 100%;
+  max-width: 375px;
+  display: flex;
+  flex-direction: column;
+  z-index: 1;
+}
+
+.bb-login-logo {
+  width: 66px;
+  height: 66px;
+  border-radius: 19px;
+  background: linear-gradient(135deg, $bb-accent, $bb-accent2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(255, 71, 87, 0.42);
+  margin-bottom: 22px;
+
+  my-global-icon {
+    display: flex;
+    width: 38px;
+    height: 38px;
+    color: #fff;
+  }
+}
+
+.bb-login-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: $bb-text-primary;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.bb-login-subtitle {
+  font-size: 15px;
+  color: $bb-text-secondary;
+  margin-top: 6px;
+  margin-bottom: 34px;
+}
+
+.bb-login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.bb-input-group {
+  height: 52px;
+  border-radius: 12px;
+  background: $bb-sunken;
+  border: 1px solid $bb-border;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 0 16px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+
+  &:focus-within {
+    border-color: rgba(255, 71, 87, 0.42);
+    box-shadow: 0 0 0 3px rgba(255, 71, 87, 0.15);
+  }
+
+  > my-global-icon {
+    display: flex;
+    width: 19px;
+    height: 19px;
+    color: $bb-text-muted;
+    flex: none;
+  }
+
+  &:focus-within > my-global-icon {
+    color: $bb-accent;
+  }
+
+  input,
+  input[type="text"],
+  input[type="email"],
+  input[type="password"] {
+    flex: 1;
+    height: 100%;
+    background: transparent;
+    border: none;
+    color: $bb-text-primary;
+    font-size: 15px;
+    padding: 0;
+    margin: 0;
+    outline: none;
+    box-shadow: none;
+
+    &::placeholder {
+      color: $bb-text-muted;
+    }
+  }
+
+  // Override InputTextComponent styles
+  ::ng-deep my-input-text {
+    flex: 1;
+    height: 100%;
+
+    .input-container {
+      height: 100%;
+
+      input {
+        height: 100%;
+        background: transparent !important;
+        border: none !important;
+        color: $bb-text-primary !important;
+        font-size: 15px !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+
+        &::placeholder {
+          color: $bb-text-muted !important;
+        }
+      }
+
+      .toggle-password {
+        color: $bb-text-muted;
+        background: transparent;
+      }
+    }
+
+    .form-error {
+      position: absolute;
+      bottom: -20px;
+      left: 0;
+      font-size: 12px;
+    }
+  }
+}
+
+.bb-form-error {
+  font-size: 12px;
+  color: $bb-accent;
+  margin-top: -6px;
+  padding-left: 16px;
+}
+
+.bb-forgot-password {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -2px;
+
+  button {
+    font-size: 13px;
+    color: $bb-text-secondary;
+    cursor: pointer;
+    padding: 0;
+
+    &:hover {
+      color: $bb-text-primary;
+    }
+  }
+}
+
+.bb-login-btn {
+  height: 52px;
+  border-radius: 12px;
+  background: $bb-accent;
+  border: none;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(255, 71, 87, 0.42);
+  margin-top: 8px;
+  transition: background 0.2s, transform 0.1s;
+
+  &:hover:not(:disabled) {
+    background: darken($bb-accent, 5%);
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.bb-signup-link {
+  text-align: center;
+  font-size: 13.5px;
+  color: $bb-text-secondary;
+  margin-top: 16px;
+
+  a {
+    color: $bb-accent;
+    font-weight: 600;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+.bb-otp-hint {
+  font-size: 13px;
+  color: $bb-text-secondary;
+  margin: 0;
+}
+
+.bb-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 32px;
+
+  span:first-child,
+  span:last-child {
+    flex: 1;
+    height: 1px;
+    background: $bb-border;
+  }
+
+  span:nth-child(2) {
+    font-size: 12px;
+    color: $bb-text-muted;
+    white-space: nowrap;
+  }
+}
+
+.bb-external-logins {
+  display: flex;
+  justify-content: center;
+  gap: 26px;
+  margin-top: 20px;
+}
+
+.bb-external-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  text-decoration: none;
+
+  span {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid $bb-border-strong;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: $bb-text-secondary;
+    transition: background 0.2s;
+  }
+
+  &:nth-child(1) span {
+    background: rgba(7, 193, 96, 0.15);
+    border-color: rgba(7, 193, 96, 0.35);
+    color: #07C160;
+  }
+
+  &:nth-child(2) span {
+    background: rgba(18, 183, 245, 0.15);
+    border-color: rgba(18, 183, 245, 0.35);
+    color: #12B7F5;
+  }
+
+  &:nth-child(3) span {
+    background: rgba(230, 22, 45, 0.15);
+    border-color: rgba(230, 22, 45, 0.35);
+    color: #E6162D;
+  }
+
+  &:hover span {
+    background: rgba(255, 255, 255, 0.1);
+  }
+}
+
+// Override alert component in login context
+:host ::ng-deep my-alert {
+  display: block;
+  margin-bottom: 16px;
+  max-width: 100%;
+}
+
+// Remove margin-content padding on mobile
+:host {
+  display: block;
+
+  ::ng-deep .margin-content {
+    margin: 0 !important;
+  }
+}

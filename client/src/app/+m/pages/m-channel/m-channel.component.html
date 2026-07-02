@@ -1,0 +1,45 @@
+<div class="m-sub-top">
+  <button class="m-sub-back" (click)="back()">
+    <my-global-icon iconName="chevron-left"></my-global-icon>
+  </button>
+  <span class="m-sub-title">{{ channel()?.displayName || '' }}</span>
+  <span class="m-sub-spacer"></span>
+</div>
+
+<div class="m-sub-body">
+  <!-- channel header -->
+  <div class="m-ch-head">
+    <div class="m-ch-avatar" [style.background-image]="avatar() ? 'url(' + avatar() + ')' : ''">
+      @if (!avatar()) { <my-global-icon iconName="user"></my-global-icon> }
+    </div>
+    <div class="m-ch-meta">
+      <div class="m-ch-name">{{ channel()?.displayName }}</div>
+      <div class="m-ch-sub">
+        {{ channel()?.followersCount || 0 }}&nbsp;<span i18n="@@boomboom.m.channel.followers">followers</span>
+      </div>
+    </div>
+    <button class="m-ch-follow" [class.on]="subscribed()" (click)="toggleFollow()">
+      @if (subscribed()) {
+        <span i18n="@@boomboom.m.channel.following">Following</span>
+      } @else {
+        <span i18n="@@boomboom.m.channel.follow">Follow</span>
+      }
+    </button>
+  </div>
+
+  @if (channel()?.description) {
+    <div class="m-ch-desc">{{ channel()?.description }}</div>
+  }
+
+  <!-- channel videos -->
+  @if (loading()) {
+    <div class="m-sub-loading" i18n="@@boomboom.m.common.loading">Loading…</div>
+  } @else if (videos().length === 0) {
+    <div class="m-sub-empty">
+      <my-global-icon iconName="videos"></my-global-icon>
+      <span i18n="@@boomboom.m.channel.empty">No dramas here yet.</span>
+    </div>
+  } @else {
+    <m-video-grid [videos]="videos()" (open)="open($event)"></m-video-grid>
+  }
+</div>

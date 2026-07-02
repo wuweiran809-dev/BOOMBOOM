@@ -1,0 +1,101 @@
+<div
+  class="video-feed-container"
+  #feedContainer
+  (touchstart)="onTouchStart($event)"
+  (touchmove)="onTouchMove($event)"
+  (touchend)="onTouchEnd()"
+>
+  <!-- Top bar: hamburger + centered tabs + search -->
+  <div class="top-bar">
+    <button class="top-bar-btn" (click)="toggleMenu()">
+      <my-global-icon iconName="menu"></my-global-icon>
+    </button>
+    <div class="top-tabs">
+      <button
+        class="top-tab"
+        [ngClass]="{ active: activeTab() === 'following' }"
+        (click)="setTab('following')"
+        i18n
+      >追剧</button>
+      <button
+        class="top-tab"
+        [ngClass]="{ active: activeTab() === 'recommend' }"
+        (click)="setTab('recommend')"
+        i18n
+      >推荐</button>
+      <button
+        class="top-tab"
+        [ngClass]="{ active: activeTab() === 'ranking' }"
+        (click)="setTab('ranking')"
+        i18n
+      >榜单</button>
+    </div>
+    <button class="top-bar-btn" routerLink="/search">
+      <my-global-icon iconName="search"></my-global-icon>
+    </button>
+  </div>
+
+  @if (currentVideo; as video) {
+    <div class="feed-card" (click)="onVideoClick(video)">
+      <div class="video-bg">
+        <img [src]="getVideoThumbnailUrl(video)" [alt]="video.name" class="video-poster" />
+        <div class="video-gradient-top"></div>
+        <div class="video-gradient-bottom"></div>
+      </div>
+
+      <!-- Right rail actions -->
+      <div class="action-rail">
+        <div class="rail-poster" (click)="$event.stopPropagation()">
+          <img [src]="getVideoThumbnailUrl(video)" class="poster-thumb" />
+          <div class="follow-badge" i18n>关注</div>
+        </div>
+
+        <button class="rail-btn" (click)="$event.stopPropagation()">
+          <my-global-icon iconName="like"></my-global-icon>
+          <span>{{ formatCount(video.likes) }}</span>
+        </button>
+
+        <button class="rail-btn" (click)="$event.stopPropagation()">
+          <my-global-icon iconName="message-circle"></my-global-icon>
+          <span>{{ formatCount(video.comments) }}</span>
+        </button>
+
+        <button class="rail-btn" (click)="$event.stopPropagation()">
+          <my-global-icon iconName="share"></my-global-icon>
+          <span i18n>分享</span>
+        </button>
+
+        <button class="rail-btn" (click)="$event.stopPropagation()">
+          <my-global-icon iconName="videos"></my-global-icon>
+          <span i18n>选集</span>
+        </button>
+      </div>
+
+      <!-- Bottom info bar -->
+      <div class="info-bar">
+        <div class="info-title-row">
+          <h3 class="video-title">{{ video.name }}</h3>
+          <span class="hot-badge" i18n>热播</span>
+        </div>
+        <div class="info-ep">第1集 · EP01</div>
+        <p class="video-desc">{{ video.description || '' }}</p>
+        <button class="chase-pill" (click)="$event.stopPropagation()" i18n>从第1集开始追</button>
+      </div>
+
+      <!-- Progress bar -->
+      <div class="progress-bar">
+        <div class="progress-fill"></div>
+      </div>
+    </div>
+  } @else if (loading()) {
+    <div class="feed-loading">
+      <div class="loading-spinner"></div>
+      <span i18n>加载中...</span>
+    </div>
+  } @else {
+    <div class="feed-empty">
+      <my-global-icon iconName="videos"></my-global-icon>
+      <p i18n>暂无视频</p>
+    </div>
+  }
+</div>

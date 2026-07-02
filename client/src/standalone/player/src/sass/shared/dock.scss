@@ -1,0 +1,103 @@
+@use "sass:math";
+@use "_variables" as *;
+@use "_mixins" as *;
+@use "./_player-variables" as *;
+
+.video-js.vjs-boomboom-skin {
+  .boomboom-dock {
+    --dock-avatar-size: 48px;
+
+    transition: opacity 0.1s;
+
+    display: flex;
+    align-items: center;
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+
+    padding: $dock-padding;
+    background: linear-gradient(to bottom, rgba(20, 20, 20, 0.7) 0, rgba(20, 20, 20, 0));
+
+    @include padding-right(60px);
+  }
+
+  .boomboom-dock-avatar {
+    border-radius: 50%;
+    margin-right: 10px;
+    min-width: var(--dock-avatar-size);
+    min-height: var(--dock-avatar-size);
+    max-height: var(--dock-avatar-size);
+    max-height: var(--dock-avatar-size);
+  }
+
+  .boomboom-dock-title-description {
+    // For ellipsis
+    min-width: 0;
+  }
+
+  .boomboom-dock-title {
+    font-weight: $font-semibold;
+    letter-spacing: 1px;
+    line-height: normal;
+    min-width: 0;
+    margin: 0;
+    font-size: 23px;
+  }
+
+  .boomboom-dock-title,
+  .boomboom-dock-description {
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+
+    @include ellipsis;
+  }
+
+  .boomboom-dock-title + .boomboom-dock-description {
+    margin-top: 3px;
+  }
+
+  .boomboom-dock-description {
+    font-size: 11px;
+    line-height: 1.5;
+  }
+
+  &.vjs-playing.vjs-user-inactive .boomboom-dock {
+    opacity: 0;
+    transition: opacity 1s;
+  }
+}
+
+.video-js.vjs-boomboom-skin.vjs-size-750 {
+  .boomboom-dock-avatar {
+    --dock-avatar-size: 40px;
+  }
+
+  .boomboom-dock-title {
+    font-size: 16px;
+  }
+
+  .boomboom-dock-description {
+    font-size: 9px;
+  }
+}
+
+.video-js.vjs-boomboom-skin.vjs-size-570 {
+  .boomboom-dock-avatar {
+    --dock-avatar-size: 35px;
+  }
+
+  .boomboom-dock-title {
+    font-size: 14px;
+  }
+}
+
+.video-js.vjs-boomboom-skin.vjs-size-350 {
+  .boomboom-dock-avatar {
+    --dock-avatar-size: 30px;
+  }
+
+  .boomboom-dock-title {
+    font-size: 13px;
+  }
+}

@@ -1,0 +1,133 @@
+@if (firstStep) {
+  @if (isMobile) {
+    <!-- ===================== Mobile drama compose (Screen 07) ===================== -->
+    <div class="bb-upload">
+      <div class="bb-up-header">
+        <a class="bb-up-cancel" routerLink="/feed" i18n>取消</a>
+        <span class="bb-up-title" i18n>发布短剧</span>
+        <span class="bb-up-draft" i18n>存草稿</span>
+      </div>
+
+      <div class="bb-up-scroll">
+        <!-- cover + basic info -->
+        <div class="bb-up-row1">
+          <button class="bb-up-cover" (click)="triggerFilePick()">
+            <my-global-icon iconName="add"></my-global-icon>
+            <span class="bb-up-cover-main" i18n>上传封面</span>
+            <span class="bb-up-cover-hint" i18n>3:4 竖版</span>
+          </button>
+          <div class="bb-up-fields">
+            <input
+              class="bb-up-name" type="text" [(ngModel)]="mobileTitle"
+              maxlength="20" i18n-placeholder placeholder="剧名（最多 20 字）"
+            />
+            <textarea
+              class="bb-up-desc" [(ngModel)]="mobileDescription"
+              i18n-placeholder placeholder="填写剧情简介，吸引用户点开第一集…"
+            ></textarea>
+          </div>
+        </div>
+
+        <!-- category -->
+        <div class="bb-up-label" i18n>选择题材</div>
+        <div class="bb-up-genres">
+          @for (g of genres; track g) {
+            <button class="bb-genre" [class.active]="selectedGenre === g" (click)="selectedGenre = g">{{ g }}</button>
+          }
+        </div>
+
+        <!-- episodes -->
+        <div class="bb-up-eplabel">
+          <span i18n>上传剧集</span>
+          <span class="bb-up-epcount" i18n>点击 + 选择视频文件</span>
+        </div>
+        <div class="bb-up-epgrid">
+          <button class="bb-up-epadd" (click)="triggerFilePick()">
+            <my-global-icon iconName="add"></my-global-icon>
+          </button>
+        </div>
+
+        <!-- pricing -->
+        <div class="bb-up-pricing">
+          <div class="bb-price-row">
+            <div class="bb-price-left">
+              <my-global-icon iconName="burst"></my-global-icon>
+              <span i18n>付费解锁</span>
+            </div>
+            <button class="bb-toggle" [class.on]="paidUnlock" (click)="paidUnlock = !paidUnlock" role="switch" [attr.aria-checked]="paidUnlock">
+              <span class="bb-toggle-knob"></span>
+            </button>
+          </div>
+          @if (paidUnlock) {
+            <div class="bb-price-sub">
+              <span i18n>免费试看</span>
+              <span class="v" i18n>前 2 集</span>
+            </div>
+            <div class="bb-price-sub">
+              <span i18n>单集解锁价</span>
+              <span class="v accent" i18n>25 金币 / 集</span>
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="bb-up-footer">
+        <button class="bb-up-publish" (click)="triggerFilePick()" i18n>发布短剧</button>
+      </div>
+
+      <!-- Real hidden upload input reused by the mobile UI -->
+      <input
+        aria-label="Select the file to upload" i18n-aria-label
+        #videoFileInput [accept]="getVideoExtensions()" (change)="onFileChange($event)"
+        id="videofile" type="file" hidden
+      />
+    </div>
+  } @else {
+    <!-- ===================== Desktop upload ===================== -->
+    <div class="upload-video-container" myDragDrop (fileDropped)="onFileDropped($event)">
+      <div class="first-step-block">
+        <my-global-icon class="upload-icon" iconName="upload" aria-hidden="true"></my-global-icon>
+
+        <div class="button-file primary-button form-control" [ngbTooltip]="'(extensions: ' + getVideoExtensions() + ')'">
+          <span i18n>Select the file to upload</span>
+          <input
+            aria-label="Select the file to upload"
+            i18n-aria-label
+            #videoFileInput
+            [accept]="getVideoExtensions()"
+            (change)="onFileChange($event)"
+            id="videofile"
+            type="file"
+            />
+        </div>
+
+        <div class="form-group form-group-channel">
+          <label i18n for="first-step-channel">Channel</label>
+          <my-select-channel-user inputId="first-step-channel" [items]="userChannels()" [(ngModel)]="firstStepChannelId"></my-select-channel-user>
+        </div>
+
+        @if (uploadingAudioFile) {
+          <div  class="form-group audio-thumbnail">
+            <label i18n for="thumbnailfileUpload">Video background image</label>
+            <div i18n class="audio-image-info">
+              Image that will be merged with your audio file.
+              <br />
+              The chosen image will be definitive and cannot be modified.
+            </div>
+            <my-image-input i18n-inputLabel inputLabel="Edit" inputName="thumbnailfileUpload" [(ngModel)]="audioThumbnailFile"></my-image-input>
+          </div>
+          <div class="form-group upload-audio-button">
+            <my-button theme="primary" [label]="getAudioUploadLabel()" icon="upload" (click)="uploadAudio()"></my-button>
+          </div>
+        }
+      </div>
+    </div>
+  }
+} @else {
+  <my-video-manage-container
+    [canUpdate]="hasUploadedFile()" [canWatch]="hasUploadedFile()"
+    (videoUpdated)="onVideoUpdated()" [cancelLink]="getCancelLink()"
+    i18n-uploadedLabel uploadedLabel="File uploaded! Your video is now available in your private library."
+    >
+  </my-video-manage-container>
+}

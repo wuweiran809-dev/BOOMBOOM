@@ -1,0 +1,30 @@
+{
+  "name": "@boomboom/boomboom-server-commands",
+  "private": true,
+  "version": "0.0.0",
+  "main": "dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    "types": "./dist/index.d.ts",
+    "boomboom:tsx": "./src/index.ts",
+    "default": "./dist/index.js"
+  },
+  "type": "module",
+  "devDependencies": {
+    "@types/superagent": "^8.1.9",
+    "@types/supertest": "^7.2.0",
+    "supertest": "^7.2.2"
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w"
+  },
+  "dependencies": {
+    "@boomboom/boomboom-core-utils": "workspace:*",
+    "@boomboom/boomboom-models": "workspace:*",
+    "@boomboom/boomboom-node-utils": "workspace:*",
+    "@boomboom/boomboom-typescript-utils": "workspace:*"
+  }
+}

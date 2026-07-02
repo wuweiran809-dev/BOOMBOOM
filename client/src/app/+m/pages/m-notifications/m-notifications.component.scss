@@ -1,0 +1,134 @@
+@use '../../m-tokens' as m;
+
+:host { display: block; }
+
+.m-notif {
+  min-height: 100vh;
+  background: m.$bg;
+  padding: 10px 0 90px;
+}
+
+.m-icon-btn {
+  width: 38px;
+  height: 38px;
+  background: none;
+  border: none;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  my-global-icon {
+    width: 23px;
+    height: 23px;
+    color: m.$text;
+  }
+
+  &:disabled { opacity: 0.4; }
+}
+
+// -- header --
+.m-notif-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 44px;
+  padding: 0 12px;
+
+  .m-notif-title {
+    font-family: m.$font-display;
+    font-size: 26px;
+    color: #fff;
+    transform: rotate(-2deg);
+    text-shadow: 2px 2px 0 m.$accent;
+  }
+}
+
+// -- category stickers --
+.m-notif-cats {
+  display: flex;
+  justify-content: space-around;
+  padding: 18px 8px 16px;
+
+  .m-cat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+
+    span:last-child {
+      font-size: 11.5px;
+      color: m.$text-secondary;
+      font-weight: 600;
+    }
+  }
+
+  .m-cat-icon {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    my-global-icon {
+      width: 24px;
+      height: 24px;
+      color: #fff;
+    }
+
+    &.update { background: m.$accent; transform: rotate(-4deg); @include m.sticker-solid(3px); }
+    &.like { background: #ff6b81; transform: rotate(3deg); @include m.sticker-solid(3px); }
+    &.comment { background: m.$info; transform: rotate(-3deg); @include m.sticker-solid(3px); }
+    &.fans { background: m.$accent2; transform: rotate(4deg); @include m.sticker-solid(3px); my-global-icon { color: m.$ink; } }
+  }
+}
+
+// -- list --
+.m-notif-list {
+  padding: 4px 16px 0;
+
+  .m-notif-recent {
+    font-size: 13px;
+    font-weight: 700;
+    color: m.$text-muted;
+    padding: 6px 0 2px;
+  }
+
+  ::ng-deep my-user-notifications {
+    .user-notifications { background: m.$bg !important; }
+
+    .notification {
+      padding: 11px 0 !important;
+      border-bottom: 1px solid m.$border !important;
+      background: transparent !important;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      &:hover { background: transparent !important; }
+
+      .avatar, .actor-avatar, img {
+        width: 46px !important;
+        height: 46px !important;
+        border-radius: 50% !important;
+        flex: none;
+        object-fit: cover;
+        border: 2px solid #000;
+      }
+
+      .message {
+        color: m.$text !important;
+        font-size: 14px !important;
+        line-height: 1.4 !important;
+
+        a { color: m.$text !important; font-weight: 700; }
+      }
+
+      .from-date {
+        color: m.$text-muted !important;
+        font-size: 12px !important;
+        margin-top: 3px;
+      }
+    }
+  }
+}

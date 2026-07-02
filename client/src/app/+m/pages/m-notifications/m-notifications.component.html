@@ -1,0 +1,38 @@
+<div class="m-notif">
+  <!-- header -->
+  <div class="m-notif-head">
+    <button class="m-icon-btn" (click)="openMenu()">
+      <my-global-icon iconName="menu"></my-global-icon>
+    </button>
+    <span class="m-notif-title" i18n="@@boomboom.m.notif.title">Messages</span>
+    <button class="m-icon-btn" [disabled]="!hasUnread()" (click)="markAllAsRead()" i18n-title="@@boomboom.m.notif.markAllRead" title="Mark all read">
+      <my-global-icon iconName="tick"></my-global-icon>
+    </button>
+  </div>
+
+  <!-- category stickers -->
+  <div class="m-notif-cats">
+    <div class="m-cat">
+      <span class="m-cat-icon update"><my-global-icon iconName="videos"></my-global-icon></span>
+      <span i18n="@@boomboom.m.notif.updates">Updates</span>
+    </div>
+    <div class="m-cat">
+      <span class="m-cat-icon like"><my-global-icon iconName="like"></my-global-icon></span>
+      <span i18n="@@boomboom.m.notif.likes">Likes</span>
+    </div>
+    <div class="m-cat">
+      <span class="m-cat-icon comment"><my-global-icon iconName="message-circle"></my-global-icon></span>
+      <span i18n="@@boomboom.m.notif.comments">Comments</span>
+    </div>
+    <div class="m-cat">
+      <span class="m-cat-icon fans"><my-global-icon iconName="user"></my-global-icon></span>
+      <span i18n="@@boomboom.m.notif.followers">Followers</span>
+    </div>
+  </div>
+
+  <!-- real notification list -->
+  <div class="m-notif-list">
+    <div class="m-notif-recent" i18n="@@boomboom.m.notif.recent">Recent</div>
+    <my-user-notifications #userNotification inPopup="false"></my-user-notifications>
+  </div>
+</div>

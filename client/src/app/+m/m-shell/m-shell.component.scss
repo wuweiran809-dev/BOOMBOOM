@@ -1,0 +1,265 @@
+@use '../m-tokens' as m;
+
+:host {
+  display: block;
+}
+
+.m-shell {
+  min-height: 100vh;
+  background: m.$bg;
+}
+
+.m-shell-outlet {
+  min-height: 100vh;
+}
+
+// ============ Bottom pop tab bar ============
+.m-tabbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-around;
+  padding: 8px 12px calc(20px + env(safe-area-inset-bottom));
+  background: #000;
+  border-top: 2.5px solid m.$accent;
+
+  .m-tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    width: 54px;
+    background: none;
+    border: none;
+    padding: 0;
+    text-decoration: none;
+    color: #fff;
+    cursor: pointer;
+
+    my-global-icon {
+      width: 25px;
+      height: 25px;
+    }
+
+    span {
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    &.active {
+      color: m.$accent;
+
+      span {
+        font-weight: 800;
+      }
+    }
+  }
+
+  .m-tab-addwrap {
+    align-self: center;
+  }
+
+  .m-tab-add {
+    width: 50px;
+    height: 36px;
+    background: m.$logo-grad;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform: rotate(-3deg);
+    @include m.sticker-solid(3px);
+
+    my-global-icon {
+      width: 24px;
+      height: 24px;
+      color: m.$ink;
+    }
+  }
+}
+
+// ============ 09 Side menu drawer ============
+.m-menu-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(0, 0, 0, 0.64);
+}
+
+.m-menu-drawer {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 298px;
+  z-index: 201;
+  background: m.$surface-card;
+  border-right: 1px solid m.$border;
+  box-shadow: 20px 0 60px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  animation: m-menu-in 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes m-menu-in {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+.m-menu-close {
+  position: absolute;
+  top: 20px;
+  right: -50px;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(6px);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  my-global-icon {
+    width: 22px;
+    height: 22px;
+    color: #fff;
+  }
+}
+
+.m-menu-head {
+  padding: 62px 22px 18px;
+
+  .m-menu-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: m.$surface-raised;
+  }
+
+  .m-menu-avatar-ph {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    my-global-icon {
+      width: 28px;
+      height: 28px;
+      color: m.$text-muted;
+    }
+  }
+
+  .m-menu-name-row {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-top: 12px;
+
+    .m-menu-name {
+      font-size: 18px;
+      font-weight: 700;
+      color: m.$text;
+    }
+
+    .m-menu-vip {
+      height: 18px;
+      padding: 0 6px;
+      border-radius: 5px;
+      background: m.$accent2-soft;
+      color: m.$accent2;
+      font-size: 10.5px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+    }
+  }
+
+  .m-menu-coins {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+    color: m.$accent2;
+
+    my-global-icon {
+      width: 15px;
+      height: 15px;
+    }
+
+    .coins {
+      font-weight: 700;
+      font-family: m.$font-mono;
+      font-size: 13px;
+    }
+
+    .coins-label {
+      color: m.$text-muted;
+      font-size: 12px;
+    }
+  }
+}
+
+.m-menu-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px 10px;
+
+  .m-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    padding: 13px 12px;
+    border-radius: 10px;
+    background: none;
+    border: none;
+    text-align: left;
+    color: m.$text;
+    font-size: 15px;
+    cursor: pointer;
+
+    my-global-icon {
+      width: 21px;
+      height: 21px;
+      color: m.$text-secondary;
+      flex: none;
+    }
+
+    > span {
+      flex: 1;
+    }
+
+    .m-menu-num {
+      font-size: 12px;
+      color: m.$text-muted;
+      font-family: m.$font-mono;
+    }
+
+    .m-menu-chev {
+      font-size: 17px;
+      color: m.$text-muted;
+    }
+
+    &.hot {
+      background: m.$surface-raised;
+
+      my-global-icon {
+        color: m.$accent2;
+      }
+    }
+
+    &:active {
+      background: rgba(255, 255, 255, 0.05);
+    }
+  }
+
+  .m-menu-divider {
+    height: 1px;
+    background: m.$border;
+    margin: 8px 12px;
+  }
+}

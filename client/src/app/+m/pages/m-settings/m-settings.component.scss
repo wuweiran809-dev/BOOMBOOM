@@ -1,0 +1,283 @@
+@use '../../m-tokens' as m;
+
+:host { display: block; }
+
+.m-set {
+  position: relative;
+  min-height: 100vh;
+  background: m.$bg;
+  padding: 44px 18px 40px;
+  overflow: hidden;
+}
+
+.m-set-halftone {
+  position: absolute;
+  top: 120px;
+  right: 0;
+  width: 170px;
+  height: 200px;
+  opacity: 0.4;
+  @include m.halftone(m.$accent, 13px);
+  pointer-events: none;
+}
+
+// -- header --
+.m-set-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 6px;
+  position: relative;
+  z-index: 2;
+
+  .m-set-back {
+    background: none;
+    border: none;
+    padding: 0;
+    display: flex;
+
+    my-global-icon { width: 26px; height: 26px; color: #fff; }
+  }
+
+  .m-set-title {
+    font-family: m.$font-display;
+    font-size: 40px;
+    color: #fff;
+    transform: rotate(-2deg);
+    text-shadow: 3px 3px 0 m.$accent;
+  }
+}
+
+// -- group label sticker --
+.m-set-label {
+  position: relative;
+  z-index: 2;
+  display: inline-block;
+  font-family: m.$font-display;
+  font-size: 19px;
+  color: m.$ink;
+  background: m.$accent2;
+  padding: 2px 13px;
+  transform: rotate(-2deg);
+  box-shadow: 3px 3px 0 #000;
+  margin: 22px 0 14px;
+
+  &:nth-of-type(2) { transform: rotate(1.5deg); }
+}
+
+// -- profile edit --
+.m-set-profile {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  background: m.$surface-card;
+  border-radius: 16px;
+  @include m.sticker-solid(4px, -0.5deg);
+}
+
+.m-set-avatar {
+  position: relative;
+  flex: none;
+  width: 66px;
+  height: 66px;
+  border-radius: 50%;
+  overflow: visible;
+  background: m.$surface-raised;
+  border: 2px solid #000;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: m.$text-muted;
+
+  img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  > my-global-icon { width: 30px; height: 30px; }
+
+  &.busy { opacity: 0.5; }
+
+  .m-set-avatar-cam {
+    position: absolute;
+    right: -4px;
+    bottom: -4px;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: m.$accent;
+    border: 2px solid m.$bg;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    my-global-icon { width: 13px; height: 13px; color: #fff; }
+  }
+}
+
+.m-set-nick {
+  flex: 1;
+  min-width: 0;
+
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    color: m.$text-muted;
+    margin-bottom: 6px;
+  }
+}
+
+.m-set-nick-row {
+  display: flex;
+  gap: 8px;
+
+  input {
+    flex: 1;
+    min-width: 0;
+    height: 38px;
+    padding: 0 12px;
+    border-radius: 10px;
+    border: 2px solid #000;
+    background: m.$surface-raised;
+    color: m.$text;
+    font-size: 14px;
+    font-weight: 600;
+    outline: none;
+
+    &:focus { border-color: m.$accent; }
+  }
+
+  .m-set-save {
+    flex: none;
+    height: 38px;
+    padding: 0 16px;
+    border-radius: 10px;
+    background: m.$logo-grad;
+    color: #fff;
+    font-weight: 800;
+    font-size: 14px;
+    cursor: pointer;
+    @include m.sticker-solid(3px);
+
+    &:disabled { opacity: 0.6; }
+  }
+}
+
+// -- row card --
+.m-set-row {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  height: 54px;
+  padding: 0 14px;
+  background: m.$surface-card;
+  border: 2px solid #000;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.6);
+  transform: rotate(var(--rot, 0deg));
+  margin-bottom: 13px;
+  cursor: pointer;
+  text-align: left;
+
+  .m-set-ic {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #000;
+    flex: none;
+
+    my-global-icon { width: 17px; height: 17px; color: #fff; }
+
+    &.accent { background: m.$accent; }
+    &.info { background: m.$info; }
+    &.gold { background: m.$accent2; my-global-icon { color: m.$ink; } }
+    &.gray { background: #8b93a1; }
+    &.green { background: m.$success; my-global-icon { color: #04221f; } }
+  }
+
+  .m-set-name {
+    flex: 1;
+    font-size: 15px;
+    font-weight: 800;
+    color: #fff;
+  }
+
+  .m-set-chev {
+    font-size: 19px;
+    color: m.$text-muted;
+  }
+
+  .m-set-val {
+    font-family: m.$font-mono;
+    font-size: 12px;
+    font-weight: 700;
+    color: m.$accent2;
+  }
+
+  &.static { cursor: default; }
+}
+
+// -- toggle --
+.m-toggle {
+  width: 50px;
+  height: 29px;
+  border-radius: 999px;
+  background: #2b323c;
+  border: 2px solid #000;
+  position: relative;
+  flex: none;
+  padding: 0;
+  cursor: pointer;
+
+  > span {
+    position: absolute;
+    left: 1.5px;
+    top: 1.5px;
+    width: 21px;
+    height: 21px;
+    border-radius: 50%;
+    background: #8b93a1;
+    border: 2px solid #000;
+    transition: transform 0.18s, background 0.18s;
+  }
+
+  &.on {
+    background: m.$accent;
+    box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
+
+    > span {
+      transform: translateX(21px);
+      background: #fff;
+    }
+  }
+}
+
+// -- logout --
+.m-set-logout-wrap {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  margin-top: 26px;
+}
+
+.m-set-logout {
+  height: 50px;
+  padding: 0 40px;
+  background: m.$accent;
+  color: #fff;
+  font-family: m.$font-display;
+  font-size: 22px;
+  cursor: pointer;
+  transform: rotate(-1.5deg);
+  @include m.sticker-solid(5px);
+}

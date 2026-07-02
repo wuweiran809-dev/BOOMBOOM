@@ -1,0 +1,222 @@
+{
+  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "version": 1,
+  "newProjectRoot": "projects",
+  "projects": {
+    "BoomBoom": {
+      "root": "",
+      "sourceRoot": "src",
+      "projectType": "application",
+      "i18n": {
+        "sourceLocale": {
+          "code": "en",
+          "baseHref": "/client/en-US/"
+        },
+        "locales": {
+          "zh-Hans": {
+            "translation": "src/locale/angular.zh-Hans-CN.xlf",
+            "baseHref": "/client/zh-Hans-CN/"
+          }
+        }
+      },
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "i18nMissingTranslation": "ignore",
+            "localize": true,
+            "outputPath": {
+              "base": "dist"
+            },
+            "index": "src/index.html",
+            "tsConfig": "tsconfig.json",
+            "polyfills": [
+              "src/polyfills.ts",
+              "@angular/localize/init"
+            ],
+            "baseHref": "/",
+            "stylePreprocessorOptions": {
+              "includePaths": [
+                "src/sass/include",
+                "."
+              ],
+              "sass": {
+                "silenceDeprecations": [ "import", "color-functions", "global-builtin", "if-function" ]
+              }
+            },
+            "assets": [
+              "src/assets/images"
+            ],
+            "styles": [
+              "src/sass/application.scss"
+            ],
+            "allowedCommonJsDependencies": [
+              "qrcode",
+              "chart.js",
+              "htmlparser2",
+              "markdown-it-emoji/light",
+              "linkifyjs/lib/linkify-html",
+              "linkifyjs/lib/plugins/mention",
+              "sanitize-html",
+              "debug",
+              "@peertube/p2p-media-loader-hlsjs",
+              "video.js",
+              "sha.js",
+              "postcss",
+              "focus-visible",
+              "path-browserify",
+              "deep-merge",
+              "escape-string-regexp",
+              "is-plain-object",
+              "parse-srcset",
+              "core-js/features/reflect",
+              "hammerjs",
+              "jschannel",
+              "color-bits"
+            ],
+            "scripts": [],
+            "extractLicenses": false,
+            "sourceMap": true,
+            "optimization": false,
+            "namedChunks": true,
+            "browser": "src/main.ts",
+            "loader": {
+              ".svg": "text"
+            }
+          },
+          "configurations": {
+            "production": {
+              "optimization": true,
+              "outputHashing": "all",
+              "sourceMap": {
+                "scripts": true,
+                "styles": false
+              },
+              "namedChunks": false,
+              "extractLicenses": true,
+              "serviceWorker": "src/ngsw-config.json",
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "2mb",
+                  "maximumError": "5mb"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "6kb",
+                  "maximumError": "140kb"
+                }
+              ],
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.prod.ts"
+                }
+              ]
+            },
+            "ar-locale": {
+              "localize": [
+                "ar"
+              ],
+              "budgets": [
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "6kb"
+                }
+              ],
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.hmr.ts"
+                }
+              ]
+            },
+            "hmr": {
+              "localize": false,
+              "budgets": [
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "6kb"
+                }
+              ],
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.hmr.ts"
+                }
+              ]
+            }
+          }
+        },
+        "serve": {
+          "builder": "@angular/build:dev-server",
+          "options": {
+            "proxyConfig": "proxy.config.json",
+            "buildTarget": "BoomBoom:build"
+          },
+          "configurations": {
+            "hmr": {
+              "buildTarget": "BoomBoom:build:hmr"
+            },
+            "ar-locale": {
+              "buildTarget": "BoomBoom:build:ar-locale"
+            }
+          }
+        },
+        "extract-i18n": {
+          "builder": "@angular/build:extract-i18n"
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": [
+              "e2e/**/*.ts",
+              "src/**/*.ts",
+              "src/**/*.html"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "schematics": {
+    "@schematics/angular:component": {
+      "prefix": "my",
+      "style": "scss",
+      "skipTests": true,
+      "flat": true,
+      "type": "component"
+    },
+    "@schematics/angular:directive": {
+      "prefix": "my",
+      "type": "directive"
+    },
+    "@angular-eslint/schematics:application": {
+      "setParserOptionsProject": true
+    },
+    "@angular-eslint/schematics:library": {
+      "setParserOptionsProject": true
+    },
+    "@schematics/angular:service": {
+      "type": "service"
+    },
+    "@schematics/angular:guard": {
+      "typeSeparator": "."
+    },
+    "@schematics/angular:interceptor": {
+      "typeSeparator": "."
+    },
+    "@schematics/angular:module": {
+      "typeSeparator": "."
+    },
+    "@schematics/angular:pipe": {
+      "typeSeparator": "."
+    },
+    "@schematics/angular:resolver": {
+      "typeSeparator": "."
+    }
+  },
+  "cli": {
+    "analytics": false
+  }
+}

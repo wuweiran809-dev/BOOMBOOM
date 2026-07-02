@@ -1,0 +1,108 @@
+<div class="m-player">
+  <!-- header -->
+  <div class="m-player-head">
+    <button class="m-player-back" (click)="back()">
+      <my-global-icon iconName="chevron-left"></my-global-icon>
+    </button>
+    <div class="m-player-titles">
+      <div class="t">{{ video()?.name || nowPlayingLabel }}</div>
+      @if (video()) {
+        <div class="ep">EP.{{ epNum(0) }} · <ng-container i18n="@@boomboom.m.player.drama">Drama</ng-container></div>
+      }
+    </div>
+    <button class="m-player-dm-toggle" [class.on]="danmakuOn()" (click)="toggleDanmaku()" i18n-title="@@boomboom.m.player.danmakuToggle" title="Danmaku">弹</button>
+  </div>
+
+  <!-- stage: real embed when unlocked, paywall poster when locked -->
+  <div class="m-player-stage">
+    @if (unlocked() && embedUrl()) {
+      <iframe
+        [src]="embedUrl()"
+        frameborder="0"
+        allowfullscreen
+        allow="autoplay; fullscreen"
+        sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+      ></iframe>
+
+      <!-- danmaku overlay -->
+      @if (danmakuOn()) {
+        <div class="m-danmaku-layer">
+          @for (d of activeDanmaku(); track d.key) {
+            <span class="m-danmaku" [style.--lane]="d.lane" [style.color]="d.color">{{ d.message }}</span>
+          }
+        </div>
+      }
+    } @else if (!unlocked()) {
+      <div class="m-player-paywall" [style.background-image]="posterUrl() ? 'url(' + posterUrl() + ')' : ''">
+        <div class="m-paywall-scrim"></div>
+        <div class="m-paywall-body">
+          <div class="m-paywall-lock"><my-global-icon iconName="burst"></my-global-icon></div>
+          <div class="m-paywall-title" i18n="@@boomboom.m.player.paidEp">This episode is locked</div>
+          <div class="m-paywall-price">
+            <my-global-icon iconName="burst"></my-global-icon>{{ coinPrice() }}
+            <span i18n="@@boomboom.m.player.coins">coins</span>
+          </div>
+        </div>
+      </div>
+    } @else {
+      <div class="m-player-loading"><div class="sp"></div></div>
+    }
+  </div>
+
+  <!-- danmaku input bar (when unlocked) -->
+  @if (unlocked()) {
+    <div class="m-danmaku-bar">
+      <input
+        class="m-dm-input"
+        type="text"
+        maxlength="100"
+        [(ngModel)]="danmakuInput"
+        (keydown.enter)="sendDanmaku()"
+        placeholder="Send a danmaku…"
+        i18n-placeholder="@@boomboom.m.player.danmakuPlaceholder"
+      />
+      <button class="m-dm-send" (click)="sendDanmaku()" i18n="@@boomboom.m.player.send">Send</button>
+    </div>
+  }
+
+  <!-- episodes strip (real: same-channel episodes) -->
+  <div class="m-player-eps">
+    <div class="m-player-eps-head">
+      <span class="title" i18n="@@boomboom.m.player.episodes">Episodes</span>
+      <span class="all"><ng-container i18n="@@boomboom.m.player.allEps">All eps</ng-container> {{ episodes().length }} ›</span>
+    </div>
+    <div class="m-player-eps-strip">
+      @for (ep of episodes(); track ep.uuid; let i = $index) {
+        <button
+          class="m-ep"
+          [class.current]="isCurrent(ep)"
+          [class.locked]="epLocked(ep)"
+          (click)="openEpisode(ep)"
+        >
+          {{ epNum(i) }}
+          @if (epLocked(ep)) {
+            <span class="m-ep-lock"></span>
+          }
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- unlock bar: only shown while locked, real price + VIP -->
+  @if (!unlocked()) {
+    <div class="m-player-unlock">
+      <button class="m-unlock-main" [disabled]="purchasing()" (click)="unlockNow()">
+        <my-global-icon iconName="burst"></my-global-icon>
+        @if (isLoggedIn) {
+          <span><ng-container i18n="@@boomboom.m.player.unlockThis">Unlock this episode</ng-container> · {{ coinPrice() }} <ng-container i18n="@@boomboom.m.player.coins">coins</ng-container></span>
+        } @else {
+          <span i18n="@@boomboom.m.player.loginToUnlock">Log in to unlock</span>
+        }
+      </button>
+      <button class="m-unlock-vip" (click)="getVip()">
+        <span class="main" i18n="@@boomboom.m.player.getVip">Get VIP</span>
+        <span class="sub" i18n="@@boomboom.m.player.watchFree">Watch all free</span>
+      </button>
+    </div>
+  }
+</div>

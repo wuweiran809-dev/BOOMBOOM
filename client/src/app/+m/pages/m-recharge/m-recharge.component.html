@@ -1,0 +1,55 @@
+<div class="m-sub-top">
+  <a routerLink="/m/me" class="m-sub-back">
+    <my-global-icon iconName="chevron-left"></my-global-icon>
+  </a>
+  <span class="m-sub-title" i18n="@@boomboom.m.recharge.title">Top up</span>
+  <span class="m-sub-spacer"></span>
+</div>
+
+<div class="m-sub-body">
+  <!-- balance card -->
+  <div class="m-rc-balance">
+    <div class="m-rc-bal-left">
+      <div class="m-rc-bal-label" i18n="@@boomboom.m.recharge.balance">Balance</div>
+      <div class="m-rc-bal-num">
+        <my-global-icon iconName="burst"></my-global-icon>{{ coinsDisplay }}
+      </div>
+    </div>
+    @if (isVip) {
+      <div class="m-rc-vip on">
+        <span i18n="@@boomboom.m.recharge.vipActive">VIP active</span>
+        <small>{{ vipExpiryLabel }}</small>
+      </div>
+    } @else {
+      <div class="m-rc-vip" i18n="@@boomboom.m.recharge.vipInactive">Not a VIP</div>
+    }
+  </div>
+
+  <!-- coin packages -->
+  <div class="m-rc-sectitle" i18n="@@boomboom.m.recharge.coinsTitle">Coin packages</div>
+  <div class="m-rc-grid">
+    @for (p of packages; track p.id) {
+      <button class="m-rc-pkg" [class.hot]="p.hot" [disabled]="!!busy()" (click)="recharge(p)">
+        @if (p.hot) { <span class="m-rc-badge" i18n="@@boomboom.m.recharge.popular">Popular</span> }
+        <span class="m-rc-coins"><my-global-icon iconName="burst"></my-global-icon>{{ p.coins }}</span>
+        <span class="m-rc-price">{{ p.price }}</span>
+      </button>
+    }
+  </div>
+
+  <!-- VIP plans -->
+  <div class="m-rc-sectitle" i18n="@@boomboom.m.recharge.vipTitle">VIP membership</div>
+  <div class="m-rc-plans">
+    @for (plan of plans; track plan.id) {
+      <button class="m-rc-plan" [class.best]="plan.best" [disabled]="!!busy()" (click)="activate(plan)">
+        <div class="m-rc-plan-left">
+          <span class="m-rc-plan-name">{{ plan.label }}</span>
+          @if (plan.best) { <span class="m-rc-badge" i18n="@@boomboom.m.recharge.bestValue">Best value</span> }
+        </div>
+        <span class="m-rc-plan-cost"><my-global-icon iconName="burst"></my-global-icon>{{ plan.coins }}</span>
+      </button>
+    }
+  </div>
+
+  <div class="m-rc-note" i18n="@@boomboom.m.recharge.note">VIP unlocks every drama for free.</div>
+</div>

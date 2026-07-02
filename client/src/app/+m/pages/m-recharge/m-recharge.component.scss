@@ -1,0 +1,173 @@
+@use '../../shared/m-sub' as sub;
+@use '../../m-tokens' as m;
+
+@include sub.sub-shell;
+
+// balance card
+.m-rc-balance {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px;
+  margin-bottom: 20px;
+  border-radius: 16px;
+  background: m.$gold-grad;
+  color: m.$ink;
+  @include m.sticker-solid(5px, -1deg);
+}
+
+.m-rc-bal-label {
+  font-size: 12px;
+  font-weight: 700;
+  opacity: 0.75;
+}
+
+.m-rc-bal-num {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+  font-family: m.$font-display;
+  font-size: 34px;
+  line-height: 1;
+
+  my-global-icon { width: 26px; height: 26px; }
+}
+
+.m-rc-vip {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  padding: 7px 12px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.18);
+  font-weight: 800;
+  font-size: 13px;
+
+  &.on { background: #000; color: m.$accent2; }
+  small { font-size: 10px; font-weight: 600; opacity: 0.8; }
+}
+
+// section titles
+.m-rc-sectitle {
+  margin: 6px 2px 12px;
+  font-family: m.$font-display;
+  font-size: 20px;
+  color: #fff;
+  transform: rotate(-1deg);
+  text-shadow: 2px 2px 0 m.$accent;
+}
+
+// coin packages
+.m-rc-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.m-rc-pkg {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 18px 10px 14px;
+  border-radius: 14px;
+  background: m.$surface-card;
+  color: m.$text;
+  cursor: pointer;
+  @include m.sticker-solid(4px);
+
+  &:nth-child(even) { transform: rotate(1deg); }
+  &:nth-child(odd) { transform: rotate(-1deg); }
+  &.hot { background: m.$accent-soft; border-color: #000; }
+  &:disabled { opacity: 0.55; }
+}
+
+.m-rc-coins {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: m.$font-display;
+  font-size: 26px;
+  color: m.$accent2;
+
+  my-global-icon { width: 22px; height: 22px; }
+}
+
+.m-rc-price {
+  font-weight: 800;
+  font-size: 15px;
+  color: m.$text;
+}
+
+// VIP plans
+.m-rc-plans {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.m-rc-plan {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px 16px;
+  border-radius: 14px;
+  background: m.$surface-card;
+  color: m.$text;
+  cursor: pointer;
+  @include m.sticker-solid(4px);
+
+  &.best { background: linear-gradient(135deg, rgba(255, 165, 2, 0.2), rgba(255, 71, 87, 0.15)); }
+  &:disabled { opacity: 0.55; }
+}
+
+.m-rc-plan-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.m-rc-plan-name {
+  font-family: m.$font-display;
+  font-size: 20px;
+}
+
+.m-rc-plan-cost {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 800;
+  font-size: 17px;
+  color: m.$accent2;
+
+  my-global-icon { width: 18px; height: 18px; }
+}
+
+// badge
+.m-rc-badge {
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: m.$accent;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  @include m.sticker-solid(2px, -3deg);
+}
+
+.m-rc-pkg .m-rc-badge {
+  position: absolute;
+  top: -9px;
+  right: -6px;
+}
+
+.m-rc-note {
+  margin: 22px 4px 0;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: m.$text-muted;
+}

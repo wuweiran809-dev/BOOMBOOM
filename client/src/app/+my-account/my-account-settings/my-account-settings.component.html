@@ -1,0 +1,245 @@
+<h1 class="visually-hidden" i18n>Settings</h1>
+
+<!-- ===================== Mobile Settings (Screen 10) ===================== -->
+@if (isMobile) {
+  <div class="bb-settings">
+    <!-- Back header -->
+    <div class="bb-set-header">
+      <button class="bb-set-back" (click)="goBack()">
+        <my-global-icon iconName="chevron-left"></my-global-icon>
+      </button>
+      <span class="bb-set-title" i18n>设置</span>
+    </div>
+
+    <div class="bb-set-scroll">
+      <!-- 账号 group -->
+      <div class="bb-set-group-label" i18n>账号</div>
+      <div class="bb-set-card">
+        @if (hasClassicAuth) {
+          <button class="bb-set-row" (click)="toggleSection('security')">
+            <my-global-icon iconName="user" class="row-icon"></my-global-icon>
+            <span i18n>账号与安全</span>
+            <my-global-icon iconName="chevron-down" class="row-chevron" [class.open]="isExpanded('security')"></my-global-icon>
+          </button>
+          @if (isExpanded('security')) {
+            <div class="bb-set-expand">
+              <my-account-change-password></my-account-change-password>
+              <my-account-change-email></my-account-change-email>
+              <my-account-two-factor-button [user]="user"></my-account-two-factor-button>
+              <my-account-token-sessions [user]="user"></my-account-token-sessions>
+            </div>
+          }
+          <div class="bb-set-divider"></div>
+        }
+
+        <button class="bb-set-row" (click)="toggleSection('profile')">
+          <my-global-icon iconName="edit" class="row-icon"></my-global-icon>
+          <span i18n>个人资料</span>
+          <my-global-icon iconName="chevron-down" class="row-chevron" [class.open]="isExpanded('profile')"></my-global-icon>
+        </button>
+        @if (isExpanded('profile')) {
+          <div class="bb-set-expand">
+            @if (user?.account) {
+              <my-actor-avatar-edit
+                class="d-block mb-3"
+                actorType="account" [avatars]="user.account.avatars"
+                [displayName]="user.account.displayName" [username]="user.username" [subscribers]="user.account.followersCount"
+                (avatarChange)="onAvatarChange($event)" (avatarDelete)="onAvatarDelete()"
+              ></my-actor-avatar-edit>
+            }
+            <my-user-quota></my-user-quota>
+            <my-account-profile [user]="user"></my-account-profile>
+          </div>
+        }
+
+        <div class="bb-set-divider"></div>
+
+        <button class="bb-set-row" (click)="toggleSection('privacy')">
+          <my-global-icon iconName="shield" class="row-icon"></my-global-icon>
+          <span i18n>隐私与账号注销</span>
+          <my-global-icon iconName="chevron-down" class="row-chevron" [class.open]="isExpanded('privacy')"></my-global-icon>
+        </button>
+        @if (isExpanded('privacy')) {
+          <div class="bb-set-expand">
+            <my-account-danger-zone [user]="user"></my-account-danger-zone>
+          </div>
+        }
+      </div>
+
+      <!-- 通用 group -->
+      <div class="bb-set-group-label" i18n>通用</div>
+      <div class="bb-set-card">
+        <button class="bb-set-row" (click)="toggleSection('notifications')">
+          <my-global-icon iconName="bell" class="row-icon"></my-global-icon>
+          <span i18n>消息通知</span>
+          <my-global-icon iconName="chevron-down" class="row-chevron" [class.open]="isExpanded('notifications')"></my-global-icon>
+        </button>
+        @if (isExpanded('notifications')) {
+          <div class="bb-set-expand">
+            <my-account-notification-preferences [user]="user"></my-account-notification-preferences>
+          </div>
+        }
+
+        <div class="bb-set-divider"></div>
+
+        <button class="bb-set-row" (click)="toggleSection('interface')">
+          <my-global-icon iconName="cog" class="row-icon"></my-global-icon>
+          <span i18n>界面与播放</span>
+          <my-global-icon iconName="chevron-down" class="row-chevron" [class.open]="isExpanded('interface')"></my-global-icon>
+        </button>
+        @if (isExpanded('interface')) {
+          <div class="bb-set-expand">
+            <my-user-interface-settings [user]="user" [userInformationLoaded]="userInformationLoaded"></my-user-interface-settings>
+            <my-user-video-settings [user]="user" [userInformationLoaded]="userInformationLoaded"></my-user-video-settings>
+          </div>
+        }
+
+        <div class="bb-set-divider"></div>
+
+        <div class="bb-set-row bb-set-row-static">
+          <my-global-icon iconName="globe" class="row-icon"></my-global-icon>
+          <span i18n>仅 Wi-Fi 下播放</span>
+          <button class="bb-toggle" [class.on]="wifiOnly()" (click)="toggleWifiOnly()" role="switch" [attr.aria-checked]="wifiOnly()">
+            <span class="bb-toggle-knob"></span>
+          </button>
+        </div>
+
+        <div class="bb-set-divider"></div>
+
+        <button class="bb-set-row" (click)="clearCache()">
+          <my-global-icon iconName="delete" class="row-icon"></my-global-icon>
+          <span i18n>清除缓存</span>
+        </button>
+      </div>
+
+      <!-- 关于 group -->
+      <div class="bb-set-group-label" i18n>关于</div>
+      <div class="bb-set-card">
+        <a class="bb-set-row" routerLink="/about">
+          <my-global-icon iconName="help" class="row-icon"></my-global-icon>
+          <span i18n>关于 BoomBoom</span>
+          @if (appVersion) {
+            <span class="row-value">v{{ appVersion }}</span>
+          }
+        </a>
+      </div>
+
+      <!-- Logout -->
+      <button class="bb-set-logout" (click)="logout()" i18n>退出登录</button>
+    </div>
+  </div>
+}
+
+<!-- ===================== Desktop Settings ===================== -->
+@if (!isMobile) {
+  <div class="pt-two-cols mt-3"> <!-- profile settings grid -->
+    <div class="title-col">
+      <h2 i18n>PROFILE SETTINGS</h2>
+    </div>
+
+    <div class="content-col">
+      @if (user?.account) {
+        <my-actor-avatar-edit
+          class="d-block mb-3"
+          actorType="account" [avatars]="user.account.avatars"
+          [displayName]="user.account.displayName" [username]="user.username" [subscribers]="user.account.followersCount"
+          (avatarChange)="onAvatarChange($event)" (avatarDelete)="onAvatarDelete()"
+        ></my-actor-avatar-edit>
+      }
+
+      <my-user-quota></my-user-quota>
+
+      <my-account-profile [user]="user"></my-account-profile>
+    </div>
+  </div>
+
+  <div class="pt-two-cols mt-5"> <!-- interface grid -->
+    <div class="title-col">
+      <div class="anchor" id="interface-settings"></div> <!-- interface settings anchor -->
+      <h2 i18n>INTERFACE</h2>
+    </div>
+
+    <div class="content-col">
+      <my-user-interface-settings [user]="user" [userInformationLoaded]="userInformationLoaded"></my-user-interface-settings>
+    </div>
+  </div>
+
+  <div class="pt-two-cols mt-5"> <!-- video settings grid -->
+    <div class="title-col">
+      <div class="anchor" id="video-settings"></div> <!-- video settings anchor -->
+      <h2 i18n>VIDEO SETTINGS</h2>
+    </div>
+
+    <div class="content-col">
+      <my-user-video-settings [user]="user" [userInformationLoaded]="userInformationLoaded"></my-user-video-settings>
+    </div>
+  </div>
+
+  <div class="pt-two-cols mt-5"> <!-- notifications grid -->
+    <div class="title-col">
+      <div class="anchor" id="notifications"></div> <!-- notifications anchor -->
+      <h2 i18n>NOTIFICATIONS</h2>
+    </div>
+
+    <div class="content-col">
+      <my-account-notification-preferences [user]="user"></my-account-notification-preferences>
+    </div>
+  </div>
+
+  @if (user.pluginAuth === null) {
+    <div class="pt-two-cols mt-5"> <!-- password grid -->
+      <div class="title-col">
+        <h2 i18n>PASSWORD</h2>
+      </div>
+      <div class="content-col">
+        <my-account-change-password></my-account-change-password>
+      </div>
+    </div>
+  }
+
+  @if (user.pluginAuth === null) {
+    <div class="pt-two-cols mt-5"> <!-- two factor auth grid -->
+      <div class="title-col">
+        <h2 i18n>TWO-FACTOR AUTHENTICATION</h2>
+      </div>
+      <div class="content-col">
+        <my-account-two-factor-button [user]="user"></my-account-two-factor-button>
+      </div>
+    </div>
+  }
+
+  <div class="pt-two-cols mt-5">
+    <div class="title-col">
+      <h2 i18n>ACCOUNT SESSIONS</h2>
+    </div>
+
+    <div class="content-col">
+      <p i18n>These are the devices currently logged in to your account.</p>
+
+      <my-account-token-sessions [user]="user"></my-account-token-sessions>
+    </div>
+  </div>
+
+
+  @if (user.pluginAuth === null) {
+    <div class="pt-two-cols mt-5"> <!-- email grid -->
+      <div class="title-col">
+        <h2 i18n>EMAIL</h2>
+      </div>
+
+      <div class="content-col">
+          <my-account-change-email></my-account-change-email>
+      </div>
+    </div>
+  }
+
+  <div class="pt-two-cols mt-5"> <!-- danger zone grid -->
+    <div class="title-col">
+      <h2 i18n class="pt-title-danger">DANGER ZONE</h2>
+    </div>
+
+    <div class="content-col">
+      <my-account-danger-zone [user]="user"></my-account-danger-zone>
+    </div>
+  </div>
+}

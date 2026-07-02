@@ -1,0 +1,177 @@
+import { minBy } from '@boomboom/boomboom-core-utils'
+import { HttpStatusCode, Thumbnail, Video, VideoPlaylist } from '@boomboom/boomboom-models'
+import {
+  cleanupTests,
+  createMultipleServers,
+  doubleFollow,
+  makeRawRequest,
+  BoomBoomServer,
+  setAccessTokensToServers,
+  waitJobs
+} from '@boomboom/boomboom-server-commands'
+import { expect } from 'chai'
+import { writeFile } from 'fs/promises'
+import { basename, join } from 'path'
+
+async function testCurrentThumbnail (server: BoomBoomServer, videoId: number | string) {
+  const video = await server.videos.get({ id: videoId })
+
+  for (const thumbnail of video.thumbnails) {
+    const { body } = await makeRawRequest({ url: thumbnail.fileUrl, expectedStatus: HttpStatusCode.OK_200 })
+    expect(body).to.not.have.lengthOf(0)
+  }
+}
+
+async function testCurrentPlaylistThumbnail (server: BoomBoomServer, playlistId: number | string) {
+  const playlist = await server.playlists.get({ playlistId })
+
+  for (const thumbnail of playlist.thumbnails) {
+    const { body } = await makeRawRequest({ url: thumbnail.fileUrl, expectedStatus: HttpStatusCode.OK_200 })
+    expect(body).to.not.have.lengthOf(0)
+  }
+}
+
+describe('Test regenerate thumbnails CLI', function () {
+  let servers: BoomBoomServer[]
+
+  let video1: Video
+  let video2: Video
+  let remoteVideo: Video
+  let playlist1: VideoPlaylist
+
+  let localSmallestThumbnailPath: string
+  let localSmallestPlaylistThumbnailPath: string
+  let remoteSmallestThumbnailPath: string
+
+  function isTruncatedThumbnail (thumbnail: Thumbnail) {
+    return basename(thumbnail.fileUrl) === basename(localSmallestThumbnailPath) ||
+      basename(thumbnail.fileUrl) === basename(localSmallestPlaylistThumbnailPath) ||
+      basename(thumbnail.fileUrl) === basename(remoteSmallestThumbnailPath)
+  }
+
+  before(async function () {
+    this.timeout(60000)
+
+    servers = await createMultipleServers(2)
+    await setAccessTokensToServers(servers)
+
+    await doubleFollow(servers[0], servers[1])
+
+    {
+      const videoUUID1 = (await servers[0].videos.quickUpload({ name: 'video 1' })).uuid
+      video1 = await servers[0].videos.get({ id: videoUUID1 })
+
+      const smallestThumbnail = minBy(video1.thumbnails, 'width')
+      localSmallestThumbnailPath = join(join(servers[0].servers.buildDirectory('thumbnails'), basename(smallestThumbnail.fileUrl)))
+
+      const videoUUID2 = (await servers[0].videos.quickUpload({ name: 'video 2' })).uuid
+      video2 = await servers[0].videos.get({ id: videoUUID2 })
+
+      const playlistUUID = (await servers[0].playlists.quickCreate({ displayName: 'playlist 1' })).uuid
+      await servers[0].playlists.addElement({ playlistId: playlistUUID, attributes: { videoId: videoUUID1 } })
+
+      playlist1 = await servers[0].playlists.get({ playlistId: playlistUUID })
+
+      const smallestPlaylistThumbnail = minBy(playlist1.thumbnails, 'width')
+      localSmallestPlaylistThumbnailPath = join(
+        join(servers[0].servers.buildDirectory('thumbnails'), basename(smallestPlaylistThumbnail.fileUrl))
+      )
+    }
+
+    {
+      const videoUUID = (await servers[1].videos.quickUpload({ name: 'video 3' })).uuid
+      await waitJobs(servers)
+
+      remoteVideo = await servers[0].videos.get({ id: videoUUID })
+
+      // Load remote thumbnails on disk
+      for (const thumbnail of remoteVideo.thumbnails) {
+        await makeRawRequest({ url: thumbnail.fileUrl, expectedStatus: HttpStatusCode.OK_200 })
+      }
+
+      const smallestThumbnail = minBy(remoteVideo.thumbnails, 'width')
+      remoteSmallestThumbnailPath = join(
+        servers[0].servers.buildDirectory(join('cache', 'thumbnails')),
+        basename(smallestThumbnail.fileUrl)
+      )
+    }
+
+    await writeFile(localSmallestThumbnailPath, '')
+    await writeFile(localSmallestPlaylistThumbnailPath, '')
+    await writeFile(remoteSmallestThumbnailPath, '')
+  })
+
+  it('Should have empty thumbnails', async function () {
+    for (const thumbnail of [ ...video1.thumbnails, ...remoteVideo.thumbnails ]) {
+      const { body } = await makeRawRequest({ url: thumbnail.fileUrl, expectedStatus: HttpStatusCode.OK_200 })
+
+      if (isTruncatedThumbnail(thumbnail)) {
+        expect(body).to.have.lengthOf(0)
+      } else {
+        expect(body).to.not.have.lengthOf(0)
+      }
+    }
+
+    for (const thumbnail of video2.thumbnails) {
+      const { body } = await makeRawRequest({ url: thumbnail.fileUrl, expectedStatus: HttpStatusCode.OK_200 })
+      expect(body).to.not.have.lengthOf(0)
+    }
+
+    for (const thumbnail of playlist1.thumbnails) {
+      const { body } = await makeRawRequest({ url: thumbnail.fileUrl, expectedStatus: HttpStatusCode.OK_200 })
+
+      if (isTruncatedThumbnail(thumbnail)) {
+        expect(body).to.have.lengthOf(0)
+      } else {
+        expect(body).to.not.have.lengthOf(0)
+      }
+    }
+  })
+
+  it('Should regenerate local thumbnails from the CLI', async function () {
+    await servers[0].cli.execWithEnv(`npm run regenerate-thumbnails`)
+  })
+
+  it('Should have generated new thumbnail files', async function () {
+    await testCurrentThumbnail(servers[0], video1.uuid)
+    await testCurrentThumbnail(servers[0], video2.uuid)
+    await testCurrentPlaylistThumbnail(servers[0], playlist1.uuid)
+  })
+
+  it('Should have deleted old local thumbnails files', async function () {
+    for (const thumbnail of [ ...video1.thumbnails, ...video2.thumbnails, ...playlist1.thumbnails ]) {
+      await makeRawRequest({ url: thumbnail.fileUrl, expectedStatus: HttpStatusCode.NOT_FOUND_404 })
+    }
+  })
+
+  it('Should regenerate remote thumbnails', async function () {
+    await servers[1].cli.execWithEnv(`npm run regenerate-thumbnails`)
+
+    await waitJobs(servers)
+
+    for (const server of servers) {
+      const video = await server.videos.get({ id: remoteVideo.uuid })
+
+      for (const thumbnail of video.thumbnails) {
+        const { body } = await makeRawRequest({ url: thumbnail.fileUrl, expectedStatus: HttpStatusCode.OK_200 })
+
+        expect(body).to.not.have.lengthOf(0)
+      }
+    }
+  })
+
+  it('Should not have cached previous remote thumbnails on server 1', async function () {
+    for (const thumbnail of remoteVideo.thumbnails) {
+      await makeRawRequest({ url: thumbnail.fileUrl, expectedStatus: HttpStatusCode.NOT_FOUND_404 })
+    }
+  })
+
+  it('Should have the appropriate thumbnails count', async function () {
+    expect(await servers[0].servers.countFiles('thumbnails')).to.equal(15)
+    expect(await servers[0].servers.countFiles('cache/thumbnails')).to.equal(5)
+  })
+
+  after(async function () {
+    await cleanupTests(servers)
+  })
+})

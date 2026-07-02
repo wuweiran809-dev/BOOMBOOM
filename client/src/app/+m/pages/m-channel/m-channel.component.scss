@@ -1,0 +1,72 @@
+@use '../../shared/m-sub' as sub;
+@use '../../m-tokens' as m;
+
+@include sub.sub-shell;
+
+.m-ch-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.m-ch-avatar {
+  flex: 0 0 auto;
+  width: 66px;
+  height: 66px;
+  border-radius: 50%;
+  background-color: m.$surface-raised;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: m.$text-muted;
+  @include m.sticker-solid(3px);
+
+  my-global-icon { width: 28px; height: 28px; }
+}
+
+.m-ch-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.m-ch-name {
+  font-weight: 800;
+  font-size: 17px;
+  color: m.$text;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.m-ch-sub {
+  margin-top: 3px;
+  font-size: 12px;
+  font-weight: 600;
+  color: m.$text-muted;
+}
+
+.m-ch-follow {
+  flex: 0 0 auto;
+  padding: 9px 18px;
+  font-weight: 800;
+  font-size: 13px;
+  color: #fff;
+  background: m.$logo-grad;
+  border-radius: 999px;
+  @include m.sticker-solid(3px, -2deg);
+
+  &.on {
+    background: m.$surface-raised;
+    color: m.$text-secondary;
+  }
+}
+
+.m-ch-desc {
+  margin: 0 2px 14px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: m.$text-secondary;
+}

@@ -1,0 +1,530 @@
+/* oxlint-disable @typescript-eslint/no-unused-expressions,@typescript-eslint/require-await */
+
+import { wait } from '@boomboom/boomboom-core-utils'
+import { HttpStatusCode } from '@boomboom/boomboom-models'
+import { buildAbsoluteFixturePath } from '@boomboom/boomboom-node-utils'
+import { BoomBoomServer, cleanupTests, createMultipleServers, killallServers } from '@boomboom/boomboom-server-commands'
+import {
+  activityPubContextify,
+  buildGlobalHTTPHeaders,
+  signAndContextify
+} from '@boomboom/boomboom-server/core/helpers/activity-pub-utils.js'
+import { buildDigest } from '@boomboom/boomboom-server/core/helpers/boomboom-crypto.js'
+import { signJsonLDObject } from '@boomboom/boomboom-server/core/helpers/boomboom-jsonld.js'
+import { ACTIVITY_PUB, HTTP_SIGNATURE } from '@boomboom/boomboom-server/core/initializers/constants.js'
+import { makePOSTAPRequest } from '@tests/shared/requests.js'
+import { SQLCommand } from '@tests/shared/sql-command.js'
+import { expect } from 'chai'
+import { readJsonSync } from 'fs-extra/esm'
+
+function signJsonLDObjectWithoutAssertion (options: Parameters<typeof signJsonLDObject>[0]) {
+  return signJsonLDObject({
+    ...options,
+
+    disableWorkerThreadAssertion: true
+  })
+}
+
+function fakeFilter () {
+  return (data: any) => Promise.resolve(data)
+}
+
+function setKeysOfServer (onServer: SQLCommand, ofServerUrl: string, publicKey: string, privateKey: string) {
+  const url = ofServerUrl + '/accounts/boomboom'
+
+  return Promise.all([
+    onServer.setActorField(url, 'publicKey', publicKey),
+    onServer.setActorField(url, 'privateKey', privateKey)
+  ])
+}
+
+function setUpdatedAtOfServer (onServer: SQLCommand, ofServerUrl: string, updatedAt: string) {
+  const url = ofServerUrl + '/accounts/boomboom'
+
+  return Promise.all([
+    onServer.setActorField(url, 'createdAt', updatedAt),
+    onServer.setActorField(url, 'updatedAt', updatedAt)
+  ])
+}
+
+function getAnnounceWithoutContext (server: BoomBoomServer) {
+  const json = readJsonSync(buildAbsoluteFixturePath('./ap-json/boomboom/announce-without-context.json'))
+  const result: typeof json = {}
+
+  for (const key of Object.keys(json)) {
+    if (Array.isArray(json[key])) {
+      result[key] = json[key].map(v => v.replace(':9002', `:${server.port}`))
+    } else {
+      result[key] = json[key].replace(':9002', `:${server.port}`)
+    }
+  }
+
+  return result
+}
+
+async function makeFollowRequest (to: { url: string }, by: { url: string, privateKey }) {
+  const follow = {
+    type: 'Follow',
+    id: by.url + '/' + new Date().getTime(),
+    actor: by.url,
+    object: to.url
+  }
+
+  const body = await activityPubContextify(follow, 'Follow', fakeFilter())
+
+  const httpSignature = {
+    keyId: by.url,
+    key: by.privateKey,
+    headers: HTTP_SIGNATURE.HEADERS_TO_SIGN_WITH_PAYLOAD
+  }
+  const headers = {
+    'digest': buildDigest(body),
+    'content-type': 'application/activity+json',
+    'accept': ACTIVITY_PUB.ACCEPT_HEADER
+  }
+
+  return makePOSTAPRequest(to.url + '/inbox', body, httpSignature, headers)
+}
+
+describe('Test ActivityPub security', function () {
+  let servers: BoomBoomServer[]
+  let sqlCommands: SQLCommand[] = []
+
+  let url: string
+
+  const keys = readJsonSync(buildAbsoluteFixturePath('./ap-json/boomboom/keys.json'))
+  const invalidKeys = readJsonSync(buildAbsoluteFixturePath('./ap-json/boomboom/invalid-keys.json'))
+  const baseHttpSignature = () => ({
+    keyId: 'acct:boomboom@' + servers[1].host,
+    key: keys.privateKey,
+    headers: HTTP_SIGNATURE.HEADERS_TO_SIGN_WITH_PAYLOAD
+  })
+
+  async function postActivity (activity: any) {
+    const signer: any = { privateKey: keys.privateKey, url: servers[2].url + '/accounts/boomboom' }
+    const signedBody: any = await signAndContextify({
+      byActor: signer,
+      data: activity,
+      contextType: 'Announce',
+      contextFilter: fakeFilter(),
+      signerFunction: signJsonLDObjectWithoutAssertion
+    })
+
+    const headers = buildGlobalHTTPHeaders(signedBody, buildDigest)
+
+    try {
+      await makePOSTAPRequest(url, signedBody, baseHttpSignature(), headers)
+
+      return { fail: false }
+    } catch (err) {
+      return { fail: true, statusCode: err.statusCode }
+    }
+  }
+
+  // ---------------------------------------------------------------
+
+  before(async function () {
+    this.timeout(60000)
+
+    servers = await createMultipleServers(3)
+
+    sqlCommands = servers.map(s => new SQLCommand(s))
+
+    url = servers[0].url + '/inbox'
+
+    await setKeysOfServer(sqlCommands[0], servers[1].url, keys.publicKey, null)
+    await setKeysOfServer(sqlCommands[1], servers[1].url, keys.publicKey, keys.privateKey)
+
+    const to = { url: servers[0].url + '/accounts/boomboom' }
+    const by = { url: servers[1].url + '/accounts/boomboom', privateKey: keys.privateKey }
+    await makeFollowRequest(to, by)
+  })
+
+  describe('When checking HTTP signature', function () {
+    it('Should fail with an invalid digest', async function () {
+      const body = await activityPubContextify(getAnnounceWithoutContext(servers[1]), 'Announce', fakeFilter())
+      const headers = {
+        Digest: buildDigest({ hello: 'coucou' })
+      }
+
+      try {
+        await makePOSTAPRequest(url, body, baseHttpSignature(), headers)
+        expect(true, 'Did not throw').to.be.false
+      } catch (err) {
+        expect(err.statusCode).to.equal(HttpStatusCode.FORBIDDEN_403)
+      }
+    })
+
+    it('Should fail with an invalid date', async function () {
+      const body = await activityPubContextify(getAnnounceWithoutContext(servers[1]), 'Announce', fakeFilter())
+      const headers = buildGlobalHTTPHeaders(body, buildDigest)
+      headers['date'] = 'Wed, 21 Oct 2015 07:28:00 GMT'
+
+      try {
+        await makePOSTAPRequest(url, body, baseHttpSignature(), headers)
+        expect(true, 'Did not throw').to.be.false
+      } catch (err) {
+        expect(err.statusCode).to.equal(HttpStatusCode.FORBIDDEN_403)
+      }
+    })
+
+    it('Should fail with bad keys', async function () {
+      await setKeysOfServer(sqlCommands[0], servers[1].url, invalidKeys.publicKey, invalidKeys.privateKey)
+      await setKeysOfServer(sqlCommands[1], servers[1].url, invalidKeys.publicKey, invalidKeys.privateKey)
+
+      const body = await activityPubContextify(getAnnounceWithoutContext(servers[1]), 'Announce', fakeFilter())
+      const headers = buildGlobalHTTPHeaders(body, buildDigest)
+
+      try {
+        await makePOSTAPRequest(url, body, baseHttpSignature(), headers)
+        expect(true, 'Did not throw').to.be.false
+      } catch (err) {
+        expect(err.statusCode).to.equal(HttpStatusCode.FORBIDDEN_403)
+      }
+    })
+
+    it('Should reject requests without appropriate signed headers', async function () {
+      await setKeysOfServer(sqlCommands[0], servers[1].url, keys.publicKey, keys.privateKey)
+      await setKeysOfServer(sqlCommands[1], servers[1].url, keys.publicKey, keys.privateKey)
+
+      const body = await activityPubContextify(getAnnounceWithoutContext(servers[1]), 'Announce', fakeFilter())
+      const headers = buildGlobalHTTPHeaders(body, buildDigest)
+
+      const signatureOptions = baseHttpSignature()
+      const badHeadersMatrix = [
+        [ '(request-target)', 'date', 'digest' ],
+        [ 'host', 'date', 'digest' ],
+        [ '(request-target)', 'host', 'digest' ]
+      ]
+
+      for (const badHeaders of badHeadersMatrix) {
+        signatureOptions.headers = badHeaders
+
+        try {
+          await makePOSTAPRequest(url, body, signatureOptions, headers)
+          expect(true, 'Did not throw').to.be.false
+        } catch (err) {
+          expect(err.statusCode).to.equal(HttpStatusCode.FORBIDDEN_403)
+        }
+      }
+    })
+
+    it('Should succeed with a valid HTTP signature draft 11 (without date but with (created))', async function () {
+      const body = await activityPubContextify(getAnnounceWithoutContext(servers[1]), 'Announce', fakeFilter())
+      const headers = buildGlobalHTTPHeaders(body, buildDigest)
+
+      const signatureOptions = baseHttpSignature()
+      signatureOptions.headers = [ '(request-target)', '(created)', 'host', 'digest' ]
+
+      const { statusCode } = await makePOSTAPRequest(url, body, signatureOptions, headers)
+      expect(statusCode).to.equal(HttpStatusCode.NO_CONTENT_204)
+    })
+
+    it('Should succeed with a valid HTTP signature', async function () {
+      const body = await activityPubContextify(getAnnounceWithoutContext(servers[1]), 'Announce', fakeFilter())
+      const headers = buildGlobalHTTPHeaders(body, buildDigest)
+
+      const { statusCode } = await makePOSTAPRequest(url, body, baseHttpSignature(), headers)
+      expect(statusCode).to.equal(HttpStatusCode.NO_CONTENT_204)
+    })
+
+    it('Should refresh the actor keys', async function () {
+      this.timeout(20000)
+
+      // Update keys of server 2 to invalid keys
+      // Server 1 should refresh the actor and fail
+      await setKeysOfServer(sqlCommands[1], servers[1].url, invalidKeys.publicKey, invalidKeys.privateKey)
+      await setUpdatedAtOfServer(sqlCommands[0], servers[1].url, '2015-07-17 22:00:00+00')
+
+      // Invalid boomboom actor cache
+      await killallServers([ servers[1] ])
+      await servers[1].run()
+
+      const body = await activityPubContextify(getAnnounceWithoutContext(servers[1]), 'Announce', fakeFilter())
+      const headers = buildGlobalHTTPHeaders(body, buildDigest)
+
+      try {
+        await makePOSTAPRequest(url, body, baseHttpSignature(), headers)
+        expect(true, 'Did not throw').to.be.false
+      } catch (err) {
+        console.error(err)
+        expect(err.statusCode).to.equal(HttpStatusCode.FORBIDDEN_403)
+      }
+    })
+  })
+
+  describe('When checking Linked Data Signature', function () {
+    before(async function () {
+      await setKeysOfServer(sqlCommands[0], servers[1].url, keys.publicKey, keys.privateKey)
+      await setKeysOfServer(sqlCommands[1], servers[1].url, keys.publicKey, keys.privateKey)
+      await setKeysOfServer(sqlCommands[2], servers[2].url, keys.publicKey, keys.privateKey)
+
+      const to = { url: servers[0].url + '/accounts/boomboom' }
+      const by = { url: servers[2].url + '/accounts/boomboom', privateKey: keys.privateKey }
+      await makeFollowRequest(to, by)
+    })
+
+    it('Should fail with bad keys', async function () {
+      await setKeysOfServer(sqlCommands[0], servers[2].url, invalidKeys.publicKey, invalidKeys.privateKey)
+      await setKeysOfServer(sqlCommands[2], servers[2].url, invalidKeys.publicKey, invalidKeys.privateKey)
+
+      const body = getAnnounceWithoutContext(servers[1])
+      body.actor = servers[2].url + '/accounts/boomboom'
+
+      const signer: any = { privateKey: invalidKeys.privateKey, url: servers[2].url + '/accounts/boomboom' }
+      const signedBody = await signAndContextify({
+        byActor: signer,
+        data: body,
+        contextType: 'Announce',
+        contextFilter: fakeFilter(),
+        signerFunction: signJsonLDObjectWithoutAssertion
+      })
+
+      const headers = buildGlobalHTTPHeaders(signedBody, buildDigest)
+
+      try {
+        await makePOSTAPRequest(url, signedBody, baseHttpSignature(), headers)
+        expect(true, 'Did not throw').to.be.false
+      } catch (err) {
+        expect(err.statusCode).to.equal(HttpStatusCode.FORBIDDEN_403)
+      }
+    })
+
+    it('Should fail with an altered body', async function () {
+      await setKeysOfServer(sqlCommands[0], servers[2].url, keys.publicKey, keys.privateKey)
+      await setKeysOfServer(sqlCommands[0], servers[2].url, keys.publicKey, keys.privateKey)
+
+      const body = getAnnounceWithoutContext(servers[1])
+      body.actor = servers[2].url + '/accounts/boomboom'
+
+      const signer: any = { privateKey: keys.privateKey, url: servers[2].url + '/accounts/boomboom' }
+      const signedBody: any = await signAndContextify({
+        byActor: signer,
+        data: body,
+        contextType: 'Announce',
+        contextFilter: fakeFilter(),
+        signerFunction: signJsonLDObjectWithoutAssertion
+      })
+
+      signedBody.actor = servers[2].url + '/account/boomboom'
+
+      const headers = buildGlobalHTTPHeaders(signedBody, buildDigest)
+
+      try {
+        await makePOSTAPRequest(url, signedBody, baseHttpSignature(), headers)
+        expect(true, 'Did not throw').to.be.false
+      } catch (err) {
+        expect(err.statusCode).to.equal(HttpStatusCode.FORBIDDEN_403)
+      }
+    })
+
+    it('Should fail with an activity using @graph payload', async function () {
+      const activity: any = {
+        'id': 'https://victim.example/users/alice/statuses/123/activity',
+        'type': 'Announce',
+        'actor': servers[2].url + '/accounts/boomboom',
+        'published': '2026-03-30T07:18:30Z',
+        'to': [ 'https://www.w3.org/ns/activitystreams#Public' ],
+        'cc': [ 'https://victim.example/users/alice/followers' ],
+        'object': 'https://target.example/users/bob/statuses/456',
+        '@graph': [
+          {
+            id: 'https://victim.example/users/alice#announces/123/undo',
+            type: 'Undo',
+            actor: servers[2].url + '/accounts/boomboom',
+            to: [ 'https://www.w3.org/ns/activitystreams#Public' ],
+            object: 'https://victim.example/users/alice/statuses/123/activity'
+          }
+        ]
+      }
+
+      const { fail, statusCode } = await postActivity(activity)
+      expect(fail).to.be.true
+      expect(statusCode).to.equal(HttpStatusCode.FORBIDDEN_403)
+    })
+
+    it('Should fail with an activity using @reverse payload', async function () {
+      const activity: any = {
+        'id': 'https://victim.example/users/alice/statuses/123/activity',
+        'type': 'Announce',
+        'actor': servers[2].url + '/accounts/boomboom',
+        'published': '2026-03-30T07:18:30Z',
+        'to': [ 'https://www.w3.org/ns/activitystreams#Public' ],
+        'cc': [ 'https://victim.example/users/alice/followers' ],
+        'object': 'https://target.example/users/bob/statuses/456',
+        '@reverse': {
+          object: {
+            id: 'https://victim.example/users/alice#announces/123/undo',
+            type: 'Undo',
+            actor: servers[2].url + '/accounts/boomboom',
+            to: [ 'https://www.w3.org/ns/activitystreams#Public' ]
+          }
+        }
+      }
+
+      const { fail, statusCode } = await postActivity(activity)
+      expect(fail).to.be.true
+      expect(statusCode).to.equal(HttpStatusCode.FORBIDDEN_403)
+    })
+
+    it('Should fail with an activity using @included payload', async function () {
+      const activity: any = {
+        '@context': 'https://www.w3.org/ns/activitystreams',
+        'id': 'https://alice.example/notes/42/activity',
+        'type': 'Create',
+        'actor': servers[2].url + '/accounts/boomboom',
+
+        'cc': 'https://www.w3.org/ns/activitystreams#Public',
+        'object': {
+          id: 'https://alice.example/notes/42',
+          type: 'Note',
+          attributedTo: 'https://alice.example/actors/1',
+          cc: 'https://www.w3.org/ns/activitystreams#Public',
+          content: 'Welcome to Fediverse!'
+        },
+        '@included': {
+          id: 'https://alice.example/notes/42/activity',
+          to: 'https://bob.example/actors/1',
+          object: {
+            id: 'https://alice.example/notes/42',
+            to: 'https://bob.example/actors/1',
+            inReplyTo: 'https://bob.example/notes/1'
+          }
+        }
+      }
+
+      const { fail, statusCode } = await postActivity(activity)
+      expect(fail).to.be.true
+      expect(statusCode).to.equal(HttpStatusCode.FORBIDDEN_403)
+    })
+
+    it('Should fail with an activity using aliased @included payload', async function () {
+      const activity: any = {
+        '@context': [ 'https://www.w3.org/ns/activitystreams', { included: '@included' } ],
+        'id': 'https://alice.example/notes/42/activity',
+        'type': 'Create',
+        'actor': servers[2].url + '/accounts/boomboom',
+        'cc': 'https://www.w3.org/ns/activitystreams#Public',
+        'object': {
+          id: 'https://alice.example/notes/42',
+          type: 'Note',
+          attributedTo: 'https://alice.example/actors/1',
+          cc: 'https://www.w3.org/ns/activitystreams#Public',
+          content: 'Welcome to Fediverse!'
+        },
+        'included': {
+          id: 'https://alice.example/notes/42/activity',
+          to: 'https://bob.example/actors/1',
+          object: {
+            id: 'https://alice.example/notes/42',
+            to: 'https://bob.example/actors/1',
+            inReplyTo: 'https://bob.example/notes/1'
+          }
+        }
+      }
+
+      const { fail, statusCode } = await postActivity(activity)
+      expect(fail).to.be.true
+      expect(statusCode).to.equal(HttpStatusCode.FORBIDDEN_403)
+    })
+
+    it('Should fail with an activity using inner @included payload', async function () {
+      const activity: any = {
+        '@context': [ 'https://www.w3.org/ns/activitystreams', { included: '@included' } ],
+        'id': 'https://alice.example/notes/42/activity',
+        'type': 'Create',
+        'actor': servers[2].url + '/accounts/boomboom',
+        'cc': 'https://www.w3.org/ns/activitystreams#Public',
+        'object': {
+          id: 'https://alice.example/notes/42',
+          type: 'Note',
+          attributedTo: 'https://alice.example/actors/1',
+          cc: 'https://www.w3.org/ns/activitystreams#Public',
+          content: 'Welcome to Fediverse!',
+          included: {
+            id: 'https://alice.example/notes/42/activity',
+            to: 'https://bob.example/actors/1',
+            object: {
+              id: 'https://alice.example/notes/42',
+              to: 'https://bob.example/actors/1',
+              inReplyTo: 'https://bob.example/notes/1'
+            }
+          }
+        }
+      }
+
+      const { fail, statusCode } = await postActivity(activity)
+      expect(fail).to.be.true
+      expect(statusCode).to.equal(HttpStatusCode.FORBIDDEN_403)
+    })
+
+    it('Should succeed with a valid signature', async function () {
+      {
+        const activity = getAnnounceWithoutContext(servers[1])
+
+        const { fail } = await postActivity(activity)
+        expect(fail).to.be.false
+      }
+
+      {
+        const activity: any = {
+          '@context': 'https://www.w3.org/ns/activitystreams',
+          'id': 'https://alice.example/notes/42/activity',
+          'type': 'Create',
+          'actor': servers[2].url + '/accounts/boomboom',
+          'cc': 'https://www.w3.org/ns/activitystreams#Public',
+          'object': {
+            id: 'https://alice.example/notes/42',
+            type: 'Note',
+            attributedTo: 'https://alice.example/actors/1',
+            cc: 'https://www.w3.org/ns/activitystreams#Public',
+            content: 'Welcome to Fediverse!'
+          }
+        }
+
+        const { fail } = await postActivity(activity)
+        expect(fail).to.be.false
+      }
+    })
+
+    it('Should refresh the actor keys', async function () {
+      this.timeout(20000)
+
+      // Wait refresh invalidation
+      await wait(10000)
+
+      // Update keys of server 3 to invalid keys
+      // Server 1 should refresh the actor and fail
+      await setKeysOfServer(sqlCommands[2], servers[2].url, invalidKeys.publicKey, invalidKeys.privateKey)
+
+      const body = getAnnounceWithoutContext(servers[1])
+      body.actor = servers[2].url + '/accounts/boomboom'
+
+      const signer: any = { privateKey: keys.privateKey, url: servers[2].url + '/accounts/boomboom' }
+      const signedBody = await signAndContextify({
+        byActor: signer,
+        data: body,
+        contextType: 'Announce',
+        contextFilter: fakeFilter(),
+        signerFunction: signJsonLDObjectWithoutAssertion
+      })
+
+      const headers = buildGlobalHTTPHeaders(signedBody, buildDigest)
+
+      try {
+        await makePOSTAPRequest(url, signedBody, baseHttpSignature(), headers)
+        expect(true, 'Did not throw').to.be.false
+      } catch (err) {
+        expect(err.statusCode).to.equal(HttpStatusCode.FORBIDDEN_403)
+      }
+    })
+  })
+
+  after(async function () {
+    for (const sql of sqlCommands) {
+      await sql.cleanup()
+    }
+
+    await cleanupTests(servers)
+  })
+})

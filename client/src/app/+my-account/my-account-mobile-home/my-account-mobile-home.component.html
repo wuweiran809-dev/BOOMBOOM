@@ -1,0 +1,106 @@
+<div class="bb-profile">
+  <!-- Top bar: hamburger + scan + settings -->
+  <div class="bb-profile-topbar">
+    <button class="bb-topbar-btn" (click)="toggleMenu()">
+      <my-global-icon iconName="menu"></my-global-icon>
+    </button>
+    <div class="bb-topbar-spacer"></div>
+    <a routerLink="/search" class="bb-topbar-btn">
+      <my-global-icon iconName="search"></my-global-icon>
+    </a>
+    <a routerLink="/my-account/settings" class="bb-topbar-btn">
+      <my-global-icon iconName="cog"></my-global-icon>
+    </a>
+  </div>
+
+  <!-- User header: avatar + name + VIP badge + ID -->
+  <div class="bb-profile-header">
+    <div class="bb-avatar-row">
+      @if (getUserAvatarUrl()) {
+        <img [src]="getUserAvatarUrl()" class="bb-avatar" />
+      } @else {
+        <div class="bb-avatar bb-avatar-placeholder">
+          <my-global-icon iconName="user"></my-global-icon>
+        </div>
+      }
+      <div class="bb-user-info">
+        <div class="bb-user-name-row">
+          <span class="bb-user-name">{{ authUser?.account?.displayName || authUser?.username }}</span>
+          <span class="bb-vip-badge" i18n>VIP</span>
+        </div>
+        <div class="bb-user-id">ID: {{ authUser?.id || '---' }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gold wallet card -->
+  <div class="bb-wallet-card">
+    <div class="bb-wallet-top">
+      <div class="bb-wallet-coin">
+        <my-global-icon iconName="burst"></my-global-icon>
+        <span class="bb-coin-count">1,280</span>
+      </div>
+      <button class="bb-recharge-btn" i18n>充值</button>
+    </div>
+    <div class="bb-wallet-vip-line" i18n>VIP会员 · 畅看全部短剧</div>
+  </div>
+
+  <!-- Quick entries: icon-only, no circles -->
+  <div class="bb-quick-entries">
+    <a routerLink="/my-library/subscriptions" class="bb-quick-entry">
+      <my-global-icon iconName="playlists"></my-global-icon>
+      <span i18n>追剧</span>
+    </a>
+    <a routerLink="/my-library/history/videos" class="bb-quick-entry">
+      <my-global-icon iconName="clock"></my-global-icon>
+      <span i18n>历史</span>
+    </a>
+    <a routerLink="/my-library/video-playlists" class="bb-quick-entry">
+      <my-global-icon iconName="like"></my-global-icon>
+      <span i18n>喜欢</span>
+    </a>
+    <a routerLink="/my-account/applications" class="bb-quick-entry">
+      <my-global-icon iconName="shield"></my-global-icon>
+      <span i18n>卡券</span>
+    </a>
+  </div>
+
+  <!-- 我的追剧: horizontal poster scroll -->
+  <div class="bb-my-dramas">
+    <div class="bb-dramas-header">
+      <span class="bb-dramas-title" i18n>我的追剧</span>
+      <a routerLink="/my-library/subscriptions" class="bb-dramas-more" i18n>查看全部 ›</a>
+    </div>
+    <div class="bb-dramas-scroll">
+      @for (item of [1,2,3,4]; track item) {
+        <div class="bb-drama-card">
+          <div class="bb-drama-poster"></div>
+          <div class="bb-drama-name" i18n>短剧标题</div>
+          <div class="bb-drama-ep" i18n>更新至12集</div>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Menu entries -->
+  <div class="bb-menu-card">
+    <a routerLink="/my-library/videos" class="bb-menu-item">
+      <my-global-icon iconName="videos"></my-global-icon>
+      <span i18n>我的作品</span>
+      <span class="bb-chevron">›</span>
+    </a>
+    <a routerLink="/my-account/notifications" class="bb-menu-item">
+      <my-global-icon iconName="bell"></my-global-icon>
+      <span i18n>消息通知</span>
+      <span class="bb-chevron">›</span>
+    </a>
+    <a routerLink="/my-account/import-export" class="bb-menu-item">
+      <my-global-icon iconName="download"></my-global-icon>
+      <span i18n>导入/导出</span>
+      <span class="bb-chevron">›</span>
+    </a>
+  </div>
+
+  <!-- Sign out -->
+  <button class="bb-signout-btn" (click)="logout()" i18n>退出登录</button>
+</div>

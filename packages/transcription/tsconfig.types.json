@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../types-generator/dist-tmp/boomboom-transcription",
+    "tsBuildInfoFile": "../types-generator/dist-tmp/boomboom-transcription/.tsbuildinfo",
+    "stripInternal": true,
+    "removeComments": false,
+    "emitDeclarationOnly": true,
+  },
+    "references": [
+    { "path": "../models" },
+    { "path": "../core-utils" },
+    { "path": "../node-utils" }
+  ]
+}

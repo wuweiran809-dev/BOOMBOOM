@@ -1,0 +1,37 @@
+<div class="m-sub-top">
+  <a routerLink="/m/me" class="m-sub-back">
+    <my-global-icon iconName="chevron-left"></my-global-icon>
+  </a>
+  <span class="m-sub-title" i18n="@@boomboom.m.library.title">My List</span>
+  <span class="m-sub-spacer"></span>
+</div>
+
+<div class="m-sub-body">
+  @if (!isLoggedIn) {
+    <div class="m-sub-empty">
+      <my-global-icon iconName="user"></my-global-icon>
+      <span i18n="@@boomboom.m.common.loginRequired">Log in to view this.</span>
+      <a routerLink="/m/login" class="m-sub-empty-cta" i18n="@@boomboom.m.common.login">Log in</a>
+    </div>
+  } @else if (loading()) {
+    <div class="m-sub-loading" i18n="@@boomboom.m.common.loading">Loading…</div>
+  } @else if (channels().length === 0) {
+    <div class="m-sub-empty">
+      <my-global-icon iconName="playlists"></my-global-icon>
+      <span i18n="@@boomboom.m.library.empty">You're not following anything yet.</span>
+      <a routerLink="/m/discover" class="m-sub-empty-cta" i18n="@@boomboom.m.library.discover">Discover dramas</a>
+    </div>
+  } @else {
+    <div class="m-lib-grid">
+      @for (c of channels(); track c.id) {
+        <button class="m-lib-card" (click)="open(c)">
+          <div class="m-lib-avatar" [style.background-image]="avatar(c) ? 'url(' + avatar(c) + ')' : ''">
+            @if (!avatar(c)) { <my-global-icon iconName="user"></my-global-icon> }
+          </div>
+          <div class="m-lib-name">{{ c.displayName }}</div>
+          <div class="m-lib-sub">{{ c.followersCount }}&nbsp;<span i18n="@@boomboom.m.library.followers">followers</span></div>
+        </button>
+      }
+    </div>
+  }
+</div>

@@ -1,0 +1,363 @@
+@use '../../m-tokens' as m;
+
+:host { display: block; }
+
+.m-feed {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 74px;
+  background: #000;
+  overflow: hidden;
+  touch-action: pan-y;
+  user-select: none;
+}
+
+// -- poster background --
+.m-feed-bg {
+  position: absolute;
+  inset: 0;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .m-feed-grad {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(11, 13, 18, 0.35), transparent 26%, transparent 40%, rgba(11, 13, 18, 0.94));
+  }
+
+  .m-feed-grad-accent {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(115deg, rgba(255, 71, 87, 0.32), transparent 42%);
+  }
+
+  .m-feed-halftone {
+    position: absolute;
+    top: 70px;
+    right: 0;
+    width: 180px;
+    height: 180px;
+    opacity: 0.5;
+    @include m.halftone(m.$accent2, 12px);
+  }
+}
+
+// -- giant outline episode number --
+.m-feed-bignum {
+  position: absolute;
+  right: -8px;
+  bottom: 300px;
+  font-family: m.$font-display;
+  font-size: 210px;
+  line-height: 0.8;
+  color: transparent;
+  -webkit-text-stroke: 2px rgba(255, 255, 255, 0.13);
+  z-index: 2;
+  pointer-events: none;
+}
+
+// -- marquee --
+.m-feed-marquee {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 28px;
+  background: #000;
+  border-top: 1.5px solid m.$accent;
+  border-bottom: 1.5px solid m.$accent;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  z-index: 6;
+
+  .m-feed-marquee-track {
+    display: flex;
+    gap: 40px;
+    white-space: nowrap;
+    font-family: m.$font-mono;
+    font-size: 12px;
+    font-weight: 700;
+    color: m.$accent2;
+    animation: m-marquee 20s linear infinite;
+    padding-left: 16px;
+
+    span { flex: none; }
+  }
+}
+
+@keyframes m-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+// -- top row --
+.m-feed-top {
+  position: absolute;
+  top: 38px;
+  left: 0;
+  right: 0;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  z-index: 6;
+
+  .m-feed-tabs {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 22px;
+
+    .m-feed-tab {
+      background: none;
+      border: none;
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 16px;
+      font-weight: 600;
+      padding: 4px 0;
+      position: relative;
+      cursor: pointer;
+
+      &.active {
+        color: #fff;
+        font-weight: 800;
+
+        &::after {
+          content: '';
+          position: absolute;
+          left: 50%;
+          bottom: -3px;
+          transform: translateX(-50%);
+          width: 22px;
+          height: 3px;
+          border-radius: 2px;
+          background: m.$accent;
+        }
+      }
+    }
+  }
+}
+
+.m-icon-btn {
+  width: 36px;
+  height: 36px;
+  background: none;
+  border: none;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+
+  my-global-icon {
+    width: 22px;
+    height: 22px;
+    color: #fff;
+    filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.5));
+  }
+}
+
+// -- burst badge --
+.m-feed-burst {
+  position: absolute;
+  top: 92px;
+  right: 14px;
+  width: 76px;
+  height: 76px;
+  background: m.$logo-grad;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(-12deg);
+  z-index: 6;
+  clip-path: polygon(50% 0, 61% 12%, 76% 6%, 78% 23%, 95% 25%, 86% 40%, 100% 50%, 86% 60%, 95% 75%, 78% 77%, 76% 94%, 61% 88%, 50% 100%, 39% 88%, 24% 94%, 22% 77%, 5% 75%, 14% 60%, 0 50%, 14% 40%, 5% 25%, 22% 23%, 24% 6%, 39% 12%);
+
+  span {
+    font-family: m.$font-display;
+    font-size: 30px;
+    color: #fff;
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.35);
+  }
+}
+
+// -- title block --
+.m-feed-title-block {
+  position: absolute;
+  left: 20px;
+  right: 20px;
+  bottom: 82px;
+  z-index: 6;
+
+  .m-feed-tags {
+    display: flex;
+    gap: 9px;
+    margin-bottom: 14px;
+
+    .m-tag {
+      display: inline-flex;
+      align-items: center;
+      height: 26px;
+      padding: 0 12px;
+      background: m.$accent2;
+      color: m.$ink;
+      font-size: 13px;
+      font-weight: 800;
+      transform: rotate(-3deg);
+      box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.55);
+
+      &.alt {
+        background: #fff;
+        color: #0b0d12;
+        transform: rotate(2deg);
+      }
+    }
+  }
+
+  .m-feed-title {
+    font-family: m.$font-display;
+    font-size: 52px;
+    line-height: 0.98;
+    color: #fff;
+    transform: rotate(-2deg);
+    text-shadow: 4px 4px 0 m.$accent, 8px 8px 0 rgba(0, 0, 0, 0.4);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .m-feed-desc {
+    font-size: 14.5px;
+    font-weight: 700;
+    color: #fff;
+    margin-top: 18px;
+    line-height: 1.45;
+    max-width: 290px;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .m-feed-cta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 18px;
+
+    .m-btn-play {
+      height: 48px;
+      padding: 0 22px;
+      background: m.$logo-grad;
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      transform: rotate(-1.5deg);
+      cursor: pointer;
+      @include m.sticker-solid(5px);
+
+      my-global-icon {
+        width: 19px;
+        height: 19px;
+        color: m.$ink;
+      }
+
+      span {
+        font-family: m.$font-display;
+        font-size: 20px;
+        color: m.$ink;
+      }
+    }
+
+    .m-btn-mark {
+      width: 48px;
+      height: 48px;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform: rotate(2deg);
+      cursor: pointer;
+      @include m.sticker-solid(4px);
+
+      my-global-icon {
+        width: 23px;
+        height: 23px;
+        color: #0b0d12;
+      }
+
+      &.on {
+        background: m.$accent;
+
+        my-global-icon { color: #fff; }
+      }
+    }
+  }
+}
+
+// -- chunky stats --
+.m-feed-stats {
+  position: absolute;
+  left: 20px;
+  bottom: 28px;
+  display: flex;
+  gap: 10px;
+  z-index: 6;
+
+  .m-stat {
+    @include m.stat-pill;
+    cursor: pointer;
+    font: inherit;
+
+    my-global-icon {
+      width: 16px;
+      height: 16px;
+    }
+
+    &.accent {
+      border-color: m.$accent;
+      color: m.$accent;
+
+      my-global-icon { color: m.$accent; }
+    }
+  }
+}
+
+// -- empty / loading --
+.m-feed-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  color: rgba(255, 255, 255, 0.6);
+
+  my-global-icon {
+    width: 48px;
+    height: 48px;
+  }
+}
+
+.m-feed-spinner {
+  width: 34px;
+  height: 34px;
+  border: 3px solid rgba(255, 255, 255, 0.15);
+  border-top-color: m.$accent;
+  border-radius: 50%;
+  animation: m-spin 0.8s linear infinite;
+}
+
+@keyframes m-spin {
+  to { transform: rotate(360deg); }
+}

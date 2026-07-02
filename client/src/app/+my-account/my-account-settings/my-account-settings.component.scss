@@ -1,0 +1,253 @@
+@use "_variables" as *;
+@use "_mixins" as *;
+
+.content-col {
+  max-width: 800px;
+}
+
+// ===== BoomBoom Mobile Settings (Screen 10) =====
+$bb-bg: #0D1117;
+$bb-card: #161B22;
+$bb-raised: #1C222B;
+$bb-sunken: #10151C;
+$bb-accent: #FF4757;
+$bb-border: rgba(255, 255, 255, 0.08);
+$bb-border-strong: rgba(255, 255, 255, 0.16);
+$bb-text: #E6EDF3;
+$bb-text2: rgba(255, 255, 255, 0.7);
+$bb-text3: rgba(255, 255, 255, 0.45);
+
+.bb-settings {
+  background: $bb-bg;
+  min-height: 100vh;
+
+  @media screen and (min-width: $mobile-view + 1) {
+    display: none;
+  }
+}
+
+// -- Back header --
+.bb-set-header {
+  display: flex;
+  align-items: center;
+  height: 52px;
+  padding: 0 12px;
+  position: sticky;
+  top: 0;
+  background: $bb-bg;
+  z-index: 5;
+
+  .bb-set-back {
+    width: 40px;
+    height: 40px;
+    background: none;
+    border: none;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    my-global-icon {
+      width: 26px;
+      height: 26px;
+      color: $bb-text;
+    }
+  }
+
+  .bb-set-title {
+    font-size: 17px;
+    font-weight: 600;
+    color: $bb-text;
+    margin-left: 4px;
+  }
+}
+
+.bb-set-scroll {
+  padding: 6px 16px 40px;
+}
+
+// -- Group label --
+.bb-set-group-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: $bb-text3;
+  padding: 16px 4px 8px;
+}
+
+// -- Card --
+.bb-set-card {
+  background: $bb-card;
+  border: 1px solid $bb-border;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.bb-set-divider {
+  height: 1px;
+  background: $bb-border;
+  margin-left: 46px;
+}
+
+// -- Row --
+.bb-set-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 15px;
+  background: none;
+  border: none;
+  text-align: left;
+  text-decoration: none;
+  color: $bb-text;
+  font-size: 14.5px;
+  cursor: pointer;
+
+  .row-icon {
+    width: 19px;
+    height: 19px;
+    color: $bb-text2;
+    flex: none;
+  }
+
+  > span {
+    flex: 1;
+    color: $bb-text;
+  }
+
+  .row-value {
+    font-size: 12px;
+    color: $bb-text3;
+    font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+    flex: none;
+  }
+
+  .row-chevron {
+    width: 17px;
+    height: 17px;
+    color: $bb-text3;
+    flex: none;
+    transition: transform 0.2s;
+
+    &.open {
+      transform: rotate(180deg);
+    }
+  }
+
+  &:active:not(.bb-set-row-static) {
+    background: rgba(255, 255, 255, 0.03);
+  }
+}
+
+// -- Toggle switch (prototype style) --
+.bb-toggle {
+  width: 44px;
+  height: 26px;
+  border-radius: 999px;
+  background: $bb-raised;
+  border: 1px solid $bb-border-strong;
+  position: relative;
+  flex: none;
+  padding: 0;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+
+  .bb-toggle-knob {
+    position: absolute;
+    left: 2px;
+    top: 2px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: $bb-text2;
+    transition: transform 0.2s, background 0.2s;
+  }
+
+  &.on {
+    background: $bb-accent;
+    border-color: $bb-accent;
+
+    .bb-toggle-knob {
+      transform: translateX(18px);
+      background: #fff;
+    }
+  }
+}
+
+// -- Expandable panel wrapping real sub-components --
+.bb-set-expand {
+  padding: 4px 15px 16px;
+  background: $bb-sunken;
+  border-top: 1px solid $bb-border;
+
+  ::ng-deep {
+    label {
+      color: $bb-text2 !important;
+      font-size: 13px !important;
+    }
+
+    h2, h3, .title {
+      color: $bb-text !important;
+      font-size: 14px !important;
+    }
+
+    input, select, textarea {
+      background: $bb-bg !important;
+      color: $bb-text !important;
+      border: 1px solid $bb-border !important;
+      border-radius: 8px !important;
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    p, span, div, li {
+      color: $bb-text2;
+    }
+
+    a {
+      color: $bb-accent;
+    }
+
+    .boomboom-button, .pt-button, button[type="submit"] {
+      &.primary-button, &.orange-button {
+        background: $bb-accent !important;
+        border-color: $bb-accent !important;
+        color: #fff !important;
+        border-radius: 10px !important;
+      }
+    }
+
+    .pt-toggle {
+      background: $bb-raised;
+
+      &.checked {
+        background: $bb-accent;
+      }
+    }
+
+    my-user-quota .progress {
+      background: $bb-raised !important;
+      border-radius: 8px !important;
+    }
+  }
+}
+
+// -- Logout button --
+.bb-set-logout {
+  width: 100%;
+  height: 48px;
+  border-radius: 12px;
+  background: $bb-card;
+  border: 1px solid $bb-border;
+  color: $bb-accent;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 22px;
+
+  &:active {
+    background: $bb-raised;
+  }
+}

@@ -1,0 +1,330 @@
+@use '_variables' as *;
+
+$bb-bg: #0D1117;
+$bb-card: #161B22;
+$bb-raised: #1C222B;
+$bb-accent: #FF4757;
+$bb-accent2: #FFA502;
+$bb-border: rgba(255, 255, 255, 0.08);
+$bb-text: #E6EDF3;
+$bb-text2: rgba(255, 255, 255, 0.7);
+$bb-text3: rgba(255, 255, 255, 0.45);
+
+.bb-profile {
+  background: $bb-bg;
+  min-height: 100vh;
+  padding: 50px 16px 100px;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+// -- Top bar: hamburger + spacer + scan + settings --
+.bb-profile-topbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 18px;
+
+  .bb-topbar-spacer {
+    flex: 1;
+  }
+
+  .bb-topbar-btn {
+    width: 38px;
+    height: 38px;
+    border: none;
+    background: none;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    flex: none;
+
+    my-global-icon {
+      width: 22px;
+      height: 22px;
+      color: $bb-text;
+    }
+  }
+}
+
+// -- Profile header: avatar + name + VIP badge + ID --
+.bb-profile-header {
+  margin-bottom: 20px;
+
+  .bb-avatar-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .bb-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex: none;
+  }
+
+  .bb-avatar-placeholder {
+    background: $bb-raised;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    my-global-icon {
+      width: 28px;
+      height: 28px;
+      color: $bb-text3;
+    }
+  }
+
+  .bb-user-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .bb-user-name-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+
+  .bb-user-name {
+    font-size: 20px;
+    font-weight: 700;
+    color: $bb-text;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .bb-vip-badge {
+    flex: none;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: linear-gradient(135deg, $bb-accent2, #FFD700);
+    color: #1a1a2e;
+    letter-spacing: 0.5px;
+  }
+
+  .bb-user-id {
+    font-size: 12px;
+    color: $bb-text3;
+    font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+  }
+}
+
+// -- Gold wallet card --
+.bb-wallet-card {
+  background: linear-gradient(135deg, #2a1f0e, #1a1510);
+  border: 1px solid rgba($bb-accent2, 0.25);
+  border-radius: 14px;
+  padding: 16px 18px;
+  margin-bottom: 20px;
+
+  .bb-wallet-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  .bb-wallet-coin {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    my-global-icon {
+      width: 24px;
+      height: 24px;
+      color: $bb-accent2;
+    }
+  }
+
+  .bb-coin-count {
+    font-size: 28px;
+    font-weight: 800;
+    color: $bb-accent2;
+    font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+    letter-spacing: -0.5px;
+  }
+
+  .bb-recharge-btn {
+    height: 32px;
+    padding: 0 20px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, $bb-accent2, #FFD700);
+    border: none;
+    color: #1a1a2e;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    flex: none;
+  }
+
+  .bb-wallet-vip-line {
+    font-size: 12px;
+    color: rgba($bb-accent2, 0.7);
+  }
+}
+
+// -- Quick entries: icon-only, no circles --
+.bb-quick-entries {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 22px;
+
+  .bb-quick-entry {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+    padding: 8px 0;
+
+    my-global-icon {
+      width: 24px;
+      height: 24px;
+      color: $bb-text2;
+    }
+
+    span {
+      font-size: 11px;
+      color: $bb-text3;
+    }
+  }
+}
+
+// -- 我的追剧: horizontal poster scroll --
+.bb-my-dramas {
+  margin-bottom: 24px;
+
+  .bb-dramas-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .bb-dramas-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: $bb-text;
+  }
+
+  .bb-dramas-more {
+    font-size: 12px;
+    color: $bb-text3;
+    text-decoration: none;
+  }
+
+  .bb-dramas-scroll {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+
+    &::-webkit-scrollbar { display: none; }
+  }
+
+  .bb-drama-card {
+    flex: none;
+    width: 100px;
+
+    .bb-drama-poster {
+      width: 100px;
+      height: 133px;
+      border-radius: 8px;
+      background: $bb-raised;
+      margin-bottom: 6px;
+    }
+
+    .bb-drama-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: $bb-text;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .bb-drama-ep {
+      font-size: 10px;
+      color: $bb-text3;
+      margin-top: 2px;
+    }
+  }
+}
+
+// -- Menu entries --
+.bb-menu-card {
+  background: $bb-card;
+  border: 1px solid $bb-border;
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 22px;
+
+  .bb-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 15px 16px;
+    text-decoration: none;
+    color: $bb-text;
+    font-size: 15px;
+    border-bottom: 1px solid $bb-border;
+    transition: background 0.15s;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &:active {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    > my-global-icon:first-child {
+      width: 21px;
+      height: 21px;
+      color: $bb-text2;
+      flex: none;
+    }
+
+    span {
+      flex: 1;
+    }
+
+    .bb-chevron {
+      font-size: 20px;
+      color: $bb-text3;
+      flex: none;
+      line-height: 1;
+    }
+  }
+}
+
+// -- Sign out --
+.bb-signout-btn {
+  width: 100%;
+  height: 48px;
+  border-radius: 12px;
+  background: $bb-card;
+  border: 1px solid $bb-border;
+  color: $bb-accent;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:active {
+    background: $bb-raised;
+  }
+}

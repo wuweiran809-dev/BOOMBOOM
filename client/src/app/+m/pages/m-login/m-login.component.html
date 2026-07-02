@@ -1,0 +1,60 @@
+<div class="m-auth">
+  <div class="m-auth-glow"></div>
+  <div class="m-auth-halftone"></div>
+
+  <div class="m-auth-body">
+    <div class="m-auth-logo">
+      <my-global-icon iconName="burst"></my-global-icon>
+    </div>
+    <h1 class="m-auth-title" i18n="@@boomboom.m.login.welcome">Welcome back</h1>
+    <p class="m-auth-sub" i18n="@@boomboom.m.login.sub">Log in to BoomBoom and binge the hottest dramas</p>
+
+    @if (error()) {
+      <div class="m-auth-error">{{ error() }}</div>
+    }
+
+    <div class="m-auth-fields">
+      <div class="m-field">
+        <my-global-icon iconName="user"></my-global-icon>
+        <input type="text" [(ngModel)]="email" i18n-placeholder="@@boomboom.m.login.emailPh" placeholder="Email" autocomplete="username" (keydown.enter)="login()" />
+      </div>
+      <div class="m-field accent">
+        <my-global-icon iconName="shield"></my-global-icon>
+        <input [type]="showPassword() ? 'text' : 'password'" [(ngModel)]="password" i18n-placeholder="@@boomboom.m.login.pwPh" placeholder="Password" autocomplete="current-password" (keydown.enter)="login()" />
+        <button class="m-field-eye" (click)="togglePassword()">
+          <my-global-icon [iconName]="showPassword() ? 'eye-open' : 'eye-close'"></my-global-icon>
+        </button>
+      </div>
+    </div>
+
+    <div class="m-auth-forgot">
+      <a routerLink="/reset-password" i18n="@@boomboom.m.login.forgot">Forgot password?</a>
+    </div>
+
+    <button class="m-auth-submit" [disabled]="submitting()" (click)="login()">
+      @if (submitting()) { <span i18n="@@boomboom.m.login.submitting">Signing in…</span> } @else { <span i18n="@@boomboom.m.login.submit">Log in</span> }
+    </button>
+
+    <div class="m-auth-switch">
+      <span i18n="@@boomboom.m.login.noAccount">No account yet?</span>
+      <a routerLink="/m/register" i18n="@@boomboom.m.login.signup">Sign up</a>
+    </div>
+
+    <div class="m-auth-divider">
+      <span></span><span i18n="@@boomboom.m.login.or">Or continue with</span><span></span>
+    </div>
+
+    <!-- Google sign-in -->
+    @if (googleHref) {
+      <a class="m-google-btn" [href]="googleHref">
+        <span class="m-google-g">G</span>
+        <span i18n="@@boomboom.m.login.google">Sign in with Google</span>
+      </a>
+    } @else {
+      <button class="m-google-btn" (click)="googleUnavailable()">
+        <span class="m-google-g">G</span>
+        <span i18n="@@boomboom.m.login.google">Sign in with Google</span>
+      </button>
+    }
+  </div>
+</div>

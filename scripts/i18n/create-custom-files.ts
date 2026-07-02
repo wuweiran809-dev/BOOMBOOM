@@ -1,0 +1,188 @@
+import { USER_ROLE_LABELS } from '@boomboom/boomboom-core-utils'
+import { root } from '@boomboom/boomboom-node-utils'
+import { readJsonSync, writeJSON } from 'fs-extra/esm'
+import { readdir } from 'fs/promises'
+import { join } from 'path'
+import {
+  ABUSE_STATES,
+  buildLanguages,
+  CHANGE_OWNERSHIP_STATES,
+  RUNNER_JOB_STATES,
+  STREAM_SYNC_STATE,
+  USER_EXPORT_STATES,
+  USER_IMPORT_STATES,
+  USER_REGISTRATION_STATES,
+  VIDEO_CATEGORIES,
+  VIDEO_CHANNEL_ACTIVITY_ACTIONS,
+  VIDEO_CHANNEL_ACTIVITY_TARGETS,
+  VIDEO_EMBED_PRIVACY_POLICIES,
+  VIDEO_IMPORT_STATES,
+  VIDEO_LICENCES,
+  VIDEO_PLAYLIST_PRIVACIES,
+  VIDEO_PLAYLIST_TYPES,
+  VIDEO_PRIVACIES,
+  VIDEO_STATES
+} from '../../server/core/initializers/constants.js'
+
+const videojs = readJsonSync(join(root(), 'client', 'src', 'locale', 'videojs.en-US.json'))
+const playerKeys = {
+  'Quality': 'Quality',
+  'Auto': 'Auto',
+  'Speed': 'Speed',
+  'Subtitles/CC': 'Subtitles/CC',
+  'Peers': 'Peers',
+  'peers': 'peers',
+  'peer': 'peer',
+  'no peers': 'no peers',
+  'Go to the video page': 'Go to the video page',
+  'Settings': 'Settings',
+  'Watching this video may reveal your IP address to others.': 'Watching this video may reveal your IP address to others.',
+  'Copy the video URL': 'Copy the video URL',
+  'Copy the video URL at the current time': 'Copy the video URL at the current time',
+  'Copy embed code': 'Copy embed code',
+  'Copy magnet URI': 'Copy magnet URI',
+  'Total downloaded: ': 'Total downloaded: ',
+  'Total uploaded: ': 'Total uploaded: ',
+  'From servers: ': 'From servers: ',
+  'From peers: ': 'From peers: ',
+  'Normal mode': 'Normal mode',
+  'Stats for nerds': 'Stats for nerds',
+  'Theater mode': 'Theater mode',
+  'Video UUID': 'Video UUID',
+  'Viewport / Frames': 'Viewport / Frames',
+  'Resolution': 'Resolution',
+  'Volume': 'Volume',
+  'Codecs': 'Codecs',
+  'Color': 'Color',
+  'Go back to the live': 'Go back to the live',
+  'Connection Speed': 'Connection Speed',
+  'Network Activity': 'Network Activity',
+  'Total Transfered': 'Total Transfered',
+  'Download Breakdown': 'Download Breakdown',
+  'Buffer Progress': 'Buffer Progress',
+  'Buffer State': 'Buffer State',
+  'Live Latency': 'Live Latency',
+  'P2P': 'P2P',
+  '{1} seconds': '{1} seconds',
+  'enabled': 'enabled',
+  'Playlist: {1}': 'Playlist: {1}',
+  'disabled': 'disabled',
+  '  off': '  off',
+  'Player mode': 'Player mode',
+  'Play in loop': 'Play in loop',
+  'This live is not currently streaming.': 'This live is not currently streaming.',
+  'This live has ended.': 'This live has ended.',
+  'The video failed to play, will try to fast forward.': 'The video failed to play, will try to fast forward.',
+  '{1} / {2} dropped of {3}': '{1} / {2} dropped of {3}',
+  ' (muted)': ' (muted)',
+  '{1} from servers · {2} from peers': '{1} from servers · {2} from peers',
+  'Previous video': 'Previous video',
+  'Video page (new window)': 'Video page (new window)',
+  'Next video': 'Next video',
+  'This video is password protected': 'This video is password protected',
+  'You need a password to watch this video.': 'You need a password to watch this video.',
+  'Incorrect password, please enter a correct password': 'Incorrect password, please enter a correct password',
+  'Cancel': 'Cancel',
+  'Up Next': 'Up Next',
+  'Autoplay is suspended': 'Autoplay is suspended',
+  '{1} (from edge: {2})': '{1} (from edge: {2})',
+  'Disable subtitles': 'Disable subtitles',
+  'Enable {1} subtitle': 'Enable {1} subtitle',
+  '{1} (auto-generated)': '{1} (auto-generated)',
+  'Go back': 'Go back',
+  'Audio only': 'Audio only',
+  'Sensitive content': 'Sensitive content',
+  'This video contains sensitive content.': 'This video contains sensitive content.',
+  'This video contains sensitive content, including:': 'This video contains sensitive content, including:',
+  'Learn more': 'Learn more',
+  'Content warning': 'Content warning',
+  'Violence': 'Violence',
+  'Shocking Content': 'Shocking Content',
+  'Explicit Sex': 'Explicit Sex',
+  'Upload speed:': 'Upload speed:',
+  'Download speed:': 'Download speed:',
+  'Uploader note:': 'Uploader note:',
+  'Close': 'Close',
+  '(skipped {1} buffers) ': '(skipped {1} buffers) ',
+  'Video Filter': 'Video Filter',
+  'Mirror Video': 'Mirror Video',
+  'Mirror': 'Mirror'
+}
+Object.assign(playerKeys, videojs)
+
+// Server keys
+const serverKeys: any = {}
+Object.values(VIDEO_CATEGORIES)
+  .concat(Object.values(VIDEO_LICENCES))
+  .concat(Object.values(VIDEO_PRIVACIES))
+  .concat(Object.values(VIDEO_STATES))
+  .concat(Object.values(VIDEO_IMPORT_STATES))
+  .concat(Object.values(VIDEO_PLAYLIST_PRIVACIES))
+  .concat(Object.values(VIDEO_PLAYLIST_TYPES))
+  .concat(Object.values(USER_ROLE_LABELS))
+  .concat(Object.values(STREAM_SYNC_STATE))
+  .concat(Object.values(VIDEO_CHANNEL_ACTIVITY_ACTIONS))
+  .concat(Object.values(VIDEO_CHANNEL_ACTIVITY_TARGETS))
+  .concat(Object.values(VIDEO_EMBED_PRIVACY_POLICIES))
+  .concat(Object.values(CHANGE_OWNERSHIP_STATES))
+  .concat(Object.values(ABUSE_STATES))
+  .concat(Object.values(USER_REGISTRATION_STATES))
+  .concat(Object.values(RUNNER_JOB_STATES))
+  .concat(Object.values(USER_EXPORT_STATES))
+  .concat(Object.values(USER_IMPORT_STATES))
+  .concat([
+    'This video does not exist.',
+    'We cannot fetch the video. Please try again later.',
+    'Sorry',
+    'This video is not available because the remote instance is not responding.',
+    'This playlist does not exist',
+    'We cannot fetch the playlist. Please try again later.',
+    'Playlist: {1}',
+    'By {1}',
+    'Unavailable video',
+    'Audio only',
+    'Unknown',
+    'This video is not allowed to be embedded on this domain.'
+  ])
+  .forEach(v => {
+    serverKeys[v] = v
+  })
+
+// ISO 639 keys
+const languageKeys: any = {}
+const { allLanguages: languages } = await buildLanguages()
+Object.keys(languages).forEach(k => {
+  languageKeys[languages[k]] = languages[k]
+})
+
+Object.assign(serverKeys, languageKeys)
+
+writeAll().catch(err => {
+  console.error(err)
+  process.exit(-1)
+})
+
+async function writeAll () {
+  const localePath = join(root(), 'client', 'src', 'locale')
+
+  await writeJSON(join(localePath, 'player.en-US.json'), playerKeys, { spaces: 4 })
+  await writeJSON(join(localePath, 'server.en-US.json'), serverKeys, { spaces: 4 })
+
+  for (const file of await readdir(localePath)) {
+    if (file.match(/^player\.[^.]+\.json$/)) {
+      const playerJsonPath = join(localePath, file)
+      const translatedPlayer = readJsonSync(playerJsonPath)
+
+      const newTranslatedPlayer = Object.assign({}, playerKeys, translatedPlayer)
+      await writeJSON(playerJsonPath, newTranslatedPlayer, { spaces: 4 })
+    }
+
+    if (file.match(/^server\.[^.]+\.json$/)) {
+      const serverJsonPath = join(localePath, file)
+      const translatedServer = readJsonSync(serverJsonPath)
+
+      const newTranslatedServer = Object.assign({}, serverKeys, translatedServer)
+      await writeJSON(serverJsonPath, newTranslatedServer, { spaces: 4 })
+    }
+  }
+}

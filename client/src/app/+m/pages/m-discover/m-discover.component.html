@@ -1,0 +1,72 @@
+<div class="m-disc">
+  <!-- sticky header -->
+  <div class="m-disc-head">
+    <button class="m-icon-btn" (click)="openMenu()">
+      <my-global-icon iconName="menu"></my-global-icon>
+    </button>
+    <div class="m-disc-search">
+      <my-global-icon iconName="search"></my-global-icon>
+      <input type="text" [(ngModel)]="searchText" (keydown.enter)="doSearch()" placeholder="Search dramas, actors, genres" i18n-placeholder="@@boomboom.m.discover.searchPlaceholder" />
+    </div>
+    <button class="m-disc-searchbtn" (click)="doSearch()" i18n="@@boomboom.m.discover.search">Search</button>
+  </div>
+
+  <div class="m-disc-scroll">
+    <!-- genre chips (real tag filter) -->
+    <div class="m-disc-genres">
+      @for (g of genres; track g.label; let i = $index) {
+        <button class="m-genre" [class.active]="activeGenre() === g" [style.--rot]="(i % 2 === 0 ? -2 : 2) + 'deg'" (click)="selectGenre(g)">{{ g.label }}</button>
+      }
+    </div>
+
+    <!-- ranking card (real trending order + real views) -->
+    <div class="m-rank-card">
+      <div class="m-rank-head">
+        <span class="m-rank-title" i18n="@@boomboom.m.discover.rankTitle">Trending Dramas</span>
+        <span class="m-rank-live" i18n="@@boomboom.m.discover.rankLive">Live</span>
+      </div>
+      <div class="m-rank-list">
+        @for (v of ranking; track v.uuid; let i = $index) {
+          <button class="m-rank-item" (click)="openVideo(v)">
+            <span class="m-rank-num" [class.top]="i < 3">{{ i + 1 }}</span>
+            <span class="m-rank-name">{{ v.name }}</span>
+            <span class="m-rank-hot">{{ formatHot(v.views) }}</span>
+          </button>
+        }
+        @if (ranking.length === 0) {
+          <div class="m-rank-empty" i18n="@@boomboom.m.discover.rankEmpty">No dramas yet</div>
+        }
+      </div>
+    </div>
+
+    <!-- section title -->
+    <div class="m-disc-sectitle"><span i18n="@@boomboom.m.discover.recommended">Recommended For You</span></div>
+
+    <!-- poster grid (real category + real channel) -->
+    <div class="m-disc-grid">
+      @for (v of grid; track v.uuid) {
+        <button class="m-poster" (click)="openVideo(v)">
+          <div class="m-poster-img">
+            @if (thumb(v)) {
+              <img [src]="thumb(v)" [alt]="v.name" />
+            }
+            @if (categoryLabel(v)) {
+              <span class="m-poster-tag">{{ categoryLabel(v) }}</span>
+            }
+            <div class="m-poster-grad"></div>
+            <div class="m-poster-info">
+              <div class="m-poster-name">{{ v.name }}</div>
+              <div class="m-poster-plays">
+                <my-global-icon iconName="videos"></my-global-icon>
+                {{ formatHot(v.views) }}
+              </div>
+            </div>
+          </div>
+          @if (channelName(v)) {
+            <div class="m-poster-eps">{{ channelName(v) }}</div>
+          }
+        </button>
+      }
+    </div>
+  </div>
+</div>

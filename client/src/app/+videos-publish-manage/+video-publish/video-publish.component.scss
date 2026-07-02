@@ -1,0 +1,126 @@
+@use '_variables' as *;
+@use '_mixins' as *;
+@use 'nav' as *;
+
+$border-width: 0;
+$border-type: solid;
+$border-color: #fff;
+$nav-link-height: 40px;
+
+.upload-message {
+  display: block;
+  width: 100%;
+  text-align: center;
+  margin-bottom: 0;
+
+  &:last-child {
+    margin-bottom: 1rem;
+  }
+}
+
+.upload-image {
+  width: 100%;
+  text-align: center;
+
+  img {
+    margin-top: 2rem;
+    margin-bottom: 75px;
+    width: 220px;
+    height: auto;
+  }
+}
+
+:host ::ng-deep .video-add-nav {
+  @include boomboom-nav-tabs($border-width, $border-type, $border-color, $nav-link-height);
+
+  & {
+    overflow-x: auto;
+    flex-wrap: unset;
+    white-space: nowrap;
+  }
+
+  a.nav-link {
+    &.active {
+      background-color: pvar(--bg-secondary-400) !important;
+    }
+  }
+}
+
+:host ::ng-deep .upload-video-container {
+  border: $border-width $border-type $border-color;
+  border-top: transparent;
+
+  background-color: pvar(--bg-secondary-400);
+  border-bottom-left-radius: 3px;
+  border-bottom-right-radius: 3px;
+  width: 100%;
+  min-height: 440px;
+  padding-bottom: 20px;
+  display: flex;
+  justify-content: center;
+  padding-top: 20px;
+
+  &.dragover {
+    border: 3px dashed pvar(--primary);
+  }
+}
+
+// ===== BoomBoom Mobile Upload =====
+$bb-bg: #0D1117;
+$bb-card: #161B22;
+$bb-raised: #1C222B;
+$bb-sunken: #10151C;
+$bb-accent: #FF4757;
+$bb-accent2: #FFA502;
+$bb-border: rgba(255, 255, 255, 0.08);
+$bb-text: #E6EDF3;
+$bb-text2: rgba(255, 255, 255, 0.7);
+$bb-text3: rgba(255, 255, 255, 0.45);
+
+@media screen and (max-width: $mobile-view) {
+  :host {
+    display: block;
+    background: $bb-bg;
+    min-height: 100vh;
+  }
+
+  .margin-content {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  // Hide info messages + quota + tabs on mobile: the drama-compose UI replaces them
+  .upload-message,
+  my-user-quota,
+  my-channels-setup-message {
+    display: none !important;
+  }
+
+  :host ::ng-deep .video-add-nav {
+    display: none !important;
+  }
+
+  // Manage container (second step, after the real upload starts) — dark theme
+  :host ::ng-deep .nav-content {
+    padding: 6px 16px 100px;
+
+    .video-manage-container, my-video-manage-container {
+      background: $bb-bg !important;
+
+      label {
+        color: $bb-text !important;
+      }
+
+      input, select, textarea {
+        background: $bb-sunken !important;
+        color: $bb-text !important;
+        border: 1px solid $bb-border !important;
+        border-radius: 10px !important;
+      }
+
+      .form-group {
+        margin-bottom: 14px;
+      }
+    }
+  }
+}

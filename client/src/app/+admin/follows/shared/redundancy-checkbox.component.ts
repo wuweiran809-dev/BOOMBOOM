@@ -1,0 +1,32 @@
+import { Component, inject, input, model, ChangeDetectionStrategy } from '@angular/core'
+import { FormsModule } from '@angular/forms'
+import { Notifier } from '@app/core'
+import { RedundancyService } from '@app/shared/shared-main/video/redundancy.service'
+import { BoomboomCheckboxComponent } from '../../../shared/shared-forms/boomboom-checkbox.component'
+
+@Component({
+  selector: 'my-redundancy-checkbox',
+  templateUrl: './redundancy-checkbox.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [ BoomboomCheckboxComponent, FormsModule ]
+})
+export class RedundancyCheckboxComponent {
+  private notifier = inject(Notifier)
+  private redundancyService = inject(RedundancyService)
+
+  readonly host = input<string>(undefined)
+  readonly redundancyAllowed = model<boolean>(undefined)
+
+  updateRedundancyState () {
+    this.redundancyService.updateRedundancy(this.host(), this.redundancyAllowed())
+      .subscribe({
+        next: () => {
+          const stateLabel = this.redundancyAllowed() ? $localize`enabled` : $localize`disabled`
+
+          this.notifier.success($localize`Redundancy for ${this.host()} is ${stateLabel}`)
+        },
+
+        error: err => this.notifier.handleError(err)
+      })
+  }
+}

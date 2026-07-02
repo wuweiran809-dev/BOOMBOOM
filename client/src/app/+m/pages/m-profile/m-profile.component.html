@@ -1,0 +1,125 @@
+<div class="m-profile">
+  <!-- halftone corner -->
+  <div class="m-profile-halftone"></div>
+
+  <!-- top bar -->
+  <div class="m-profile-top">
+    <button class="m-icon-btn" (click)="openMenu()">
+      <my-global-icon iconName="menu"></my-global-icon>
+    </button>
+    <div class="spacer"></div>
+    <a routerLink="/m/discover" class="m-icon-btn">
+      <my-global-icon iconName="search"></my-global-icon>
+    </a>
+    <a routerLink="/m/settings" class="m-icon-btn">
+      <my-global-icon iconName="cog"></my-global-icon>
+    </a>
+  </div>
+
+  <!-- user header -->
+  <div class="m-profile-user">
+    @if (getAvatarUrl()) {
+      <img [src]="getAvatarUrl()" class="m-profile-avatar" />
+    } @else {
+      <div class="m-profile-avatar m-profile-avatar-ph">
+        <my-global-icon iconName="user"></my-global-icon>
+      </div>
+    }
+    <div class="m-profile-info">
+      <div class="m-profile-name-row">
+        <span class="m-profile-name">{{ user?.account?.displayName || user?.username || notLoggedInLabel }}</span>
+        @if (isVip) {
+          <span class="m-profile-vip" i18n="@@boomboom.m.profile.vip">VIP</span>
+        }
+      </div>
+      <div class="m-profile-id">ID: {{ user?.id || '---' }}</div>
+    </div>
+  </div>
+
+  <!-- gold wallet sticker card -->
+  <div class="m-wallet">
+    <div class="m-wallet-top">
+      <div class="m-wallet-coin">
+        <my-global-icon iconName="burst"></my-global-icon>
+        <span class="m-wallet-num">{{ coinsDisplay }}</span>
+      </div>
+      <a routerLink="/m/recharge" class="m-wallet-recharge" i18n="@@boomboom.m.profile.topUp">Top up</a>
+    </div>
+    @if (isVip) {
+      <div class="m-wallet-vip" i18n="@@boomboom.m.profile.vipDesc">VIP · Watch everything</div>
+    } @else {
+      <div class="m-wallet-vip" i18n="@@boomboom.m.profile.vipCta">Become a VIP · Watch everything free</div>
+    }
+  </div>
+
+  <!-- quick entries -->
+  <div class="m-quick">
+    <a routerLink="/m/library" class="m-quick-item">
+      <span class="m-quick-icon a"><my-global-icon iconName="playlists"></my-global-icon></span>
+      <span i18n="@@boomboom.m.profile.following">Following</span>
+    </a>
+    <a routerLink="/m/history" class="m-quick-item">
+      <span class="m-quick-icon b"><my-global-icon iconName="history"></my-global-icon></span>
+      <span i18n="@@boomboom.m.profile.history">History</span>
+    </a>
+    <a routerLink="/m/likes" class="m-quick-item">
+      <span class="m-quick-icon c"><my-global-icon iconName="like"></my-global-icon></span>
+      <span i18n="@@boomboom.m.profile.likes">Likes</span>
+    </a>
+    <a routerLink="/m/recharge" class="m-quick-item">
+      <span class="m-quick-icon d"><my-global-icon iconName="award"></my-global-icon></span>
+      <span i18n="@@boomboom.m.profile.coupons">Coupons</span>
+    </a>
+  </div>
+
+  <!-- 我的追剧 -->
+  <div class="m-dramas">
+    <div class="m-dramas-head">
+      <span class="m-dramas-title" i18n="@@boomboom.m.profile.myList">My List</span>
+      <a routerLink="/m/library" class="m-dramas-more" i18n="@@boomboom.m.profile.seeAll">See all ›</a>
+    </div>
+    @if (myDramas().length > 0) {
+      <div class="m-dramas-scroll">
+        @for (c of myDramas(); track c.id) {
+          <button class="m-drama" (click)="openChannel(c)">
+            <div class="m-drama-poster" [style.background-image]="channelAvatar(c) ? 'url(' + channelAvatar(c) + ')' : ''"></div>
+            <div class="m-drama-name">{{ c.displayName }}</div>
+            <div class="m-drama-ep">{{ c.followersCount }}&nbsp;<span i18n="@@boomboom.m.profile.followers">followers</span></div>
+          </button>
+        }
+      </div>
+    } @else {
+      <div class="m-dramas-empty" i18n="@@boomboom.m.profile.noDramas">You're not following anything yet.</div>
+    }
+  </div>
+
+  <!-- menu list -->
+  <div class="m-profile-menu">
+    <a routerLink="/m/create" class="m-profile-mitem">
+      <my-global-icon iconName="videos"></my-global-icon>
+      <span i18n="@@boomboom.m.profile.myVideos">My Videos</span>
+      <span class="chev">›</span>
+    </a>
+    <a routerLink="/m/notifications" class="m-profile-mitem">
+      <my-global-icon iconName="bell"></my-global-icon>
+      <span i18n="@@boomboom.m.profile.notifications">Notifications</span>
+      <span class="chev">›</span>
+    </a>
+    <a routerLink="/m/settings" class="m-profile-mitem">
+      <my-global-icon iconName="cog"></my-global-icon>
+      <span i18n="@@boomboom.m.profile.settings">Settings</span>
+      <span class="chev">›</span>
+    </a>
+  </div>
+
+  <!-- sign out -->
+  @if (isLoggedIn) {
+    <div class="m-signout-wrap">
+      <button class="m-signout" (click)="logout()" i18n="@@boomboom.m.profile.logout">Log out</button>
+    </div>
+  } @else {
+    <div class="m-signout-wrap">
+      <a routerLink="/m/login" class="m-signout login" i18n="@@boomboom.m.profile.loginSignup">Log in / Sign up</a>
+    </div>
+  }
+</div>

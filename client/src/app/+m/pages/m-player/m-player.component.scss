@@ -1,0 +1,372 @@
+@use '../../m-tokens' as m;
+
+:host { display: block; }
+
+.m-player {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  display: flex;
+  flex-direction: column;
+  z-index: 500;
+}
+
+// -- header --
+.m-player-head {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 52px;
+  padding: 0 12px;
+  background: #000;
+
+  .m-player-back, .m-player-more {
+    width: 40px;
+    height: 40px;
+    background: none;
+    border: none;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+
+    my-global-icon { width: 24px; height: 24px; color: #fff; }
+  }
+
+  .m-player-titles {
+    flex: 1;
+    min-width: 0;
+    text-align: center;
+
+    .t {
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .ep {
+      font-size: 11px;
+      font-family: m.$font-mono;
+      color: rgba(255, 255, 255, 0.7);
+      margin-top: 2px;
+    }
+  }
+}
+
+// -- embed player --
+.m-player-stage {
+  flex: none;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000;
+
+  iframe {
+    width: 100%;
+    height: 100%;
+    display: block;
+    border: 0;
+  }
+}
+
+.m-player-loading {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .sp {
+    width: 34px;
+    height: 34px;
+    border: 3px solid rgba(255, 255, 255, 0.15);
+    border-top-color: m.$accent;
+    border-radius: 50%;
+    animation: m-spin 0.8s linear infinite;
+  }
+}
+
+@keyframes m-spin { to { transform: rotate(360deg); } }
+
+// -- paywall (locked) --
+.m-player-paywall {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  background-color: m.$surface-sunken;
+}
+
+.m-paywall-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.62);
+  backdrop-filter: blur(3px);
+}
+
+.m-paywall-body {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.m-paywall-lock {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: m.$gold-grad;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  @include m.sticker-solid(3px, -4deg);
+
+  my-global-icon { width: 28px; height: 28px; color: m.$ink; }
+}
+
+.m-paywall-title {
+  font-weight: 800;
+  font-size: 15px;
+  color: #fff;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+}
+
+.m-paywall-price {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: m.$font-display;
+  font-size: 24px;
+  color: m.$accent2;
+
+  my-global-icon { width: 20px; height: 20px; }
+  span { font-family: inherit; font-size: 15px; color: rgba(255, 255, 255, 0.85); }
+}
+
+// -- danmaku overlay --
+.m-danmaku-layer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.m-danmaku {
+  position: absolute;
+  left: 100%;
+  top: calc(6px + var(--lane) * 27px);
+  white-space: nowrap;
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.95), 0 0 4px rgba(0, 0, 0, 0.6);
+  will-change: transform;
+  animation: dm-scroll 7s linear forwards;
+}
+
+@keyframes dm-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(calc(-100vw - 100%)); }
+}
+
+// -- danmaku toggle (header) --
+.m-player-dm-toggle {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: 9px;
+  border: 2px solid #000;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 800;
+  font-size: 15px;
+  cursor: pointer;
+
+  &.on {
+    background: m.$accent;
+    color: #fff;
+    box-shadow: 2px 2px 0 #000;
+  }
+}
+
+// -- danmaku input bar --
+.m-danmaku-bar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: m.$bg;
+  border-bottom: 1px solid m.$border;
+
+  .m-dm-input {
+    flex: 1;
+    height: 38px;
+    padding: 0 14px;
+    border-radius: 999px;
+    border: 2px solid #000;
+    background: m.$surface-raised;
+    color: m.$text;
+    font-size: 14px;
+    outline: none;
+
+    &::placeholder { color: m.$text-muted; }
+    &:focus { border-color: m.$accent; }
+  }
+
+  .m-dm-send {
+    flex: none;
+    height: 38px;
+    padding: 0 18px;
+    border-radius: 999px;
+    background: m.$logo-grad;
+    color: #fff;
+    font-weight: 800;
+    font-size: 14px;
+    cursor: pointer;
+    @include m.sticker-solid(3px);
+  }
+}
+
+// -- 选集 --
+.m-player-eps {
+  flex: 1;
+  overflow-y: auto;
+  background: m.$bg;
+  padding: 16px 0 8px;
+
+  .m-player-eps-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px 10px;
+
+    .title {
+      font-family: m.$font-display;
+      font-size: 20px;
+      color: #fff;
+      transform: rotate(-2deg);
+      display: inline-block;
+      text-shadow: 2px 2px 0 m.$accent;
+    }
+
+    .all { font-size: 12px; color: m.$text-muted; }
+  }
+
+  .m-player-eps-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 0 16px;
+  }
+
+  .m-ep {
+    position: relative;
+    width: 46px;
+    height: 46px;
+    background: m.$surface-raised;
+    border: 2px solid #000;
+    box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: m.$font-mono;
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+    cursor: pointer;
+
+    &.current {
+      background: m.$accent;
+      box-shadow: 2px 2px 0 #000, 0 0 0 2px rgba(255, 255, 255, 0.5);
+    }
+
+    &.locked {
+      background: rgba(255, 255, 255, 0.06);
+      color: m.$text-muted;
+    }
+
+    .m-ep-lock {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      width: 9px;
+      height: 7px;
+      border-radius: 1.5px;
+      background: m.$accent2;
+
+      &::before {
+        content: '';
+        position: absolute;
+        top: -4px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 5px;
+        height: 5px;
+        border: 1.5px solid m.$accent2;
+        border-bottom: none;
+        border-top-left-radius: 3px;
+        border-top-right-radius: 3px;
+      }
+    }
+  }
+}
+
+// -- unlock bar --
+.m-player-unlock {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px calc(18px + env(safe-area-inset-bottom));
+  background: m.$bg;
+  border-top: 1px solid m.$border;
+
+  .m-unlock-main {
+    flex: 1;
+    height: 46px;
+    background: m.$gold-grad;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    @include m.sticker-solid(4px);
+
+    my-global-icon { width: 18px; height: 18px; color: m.$ink; }
+
+    span {
+      font-family: m.$font-display;
+      font-size: 18px;
+      color: m.$ink;
+    }
+
+    &:disabled { opacity: 0.6; }
+  }
+
+  .m-unlock-vip {
+    width: 104px;
+    height: 46px;
+    background: m.$accent-soft;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    @include m.sticker(4px);
+    border-color: m.$accent;
+
+    .main { font-size: 13px; font-weight: 800; color: m.$accent; }
+    .sub { font-size: 10px; color: m.$text-secondary; }
+  }
+}

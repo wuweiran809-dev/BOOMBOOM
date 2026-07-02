@@ -1,0 +1,27 @@
+<div class="m-sub-top">
+  <a routerLink="/m/me" class="m-sub-back">
+    <my-global-icon iconName="chevron-left"></my-global-icon>
+  </a>
+  <span class="m-sub-title" i18n="@@boomboom.m.history.title">History</span>
+  <span class="m-sub-spacer"></span>
+</div>
+
+<div class="m-sub-body">
+  @if (!isLoggedIn) {
+    <div class="m-sub-empty">
+      <my-global-icon iconName="user"></my-global-icon>
+      <span i18n="@@boomboom.m.common.loginRequired">Log in to view this.</span>
+      <a routerLink="/m/login" class="m-sub-empty-cta" i18n="@@boomboom.m.common.login">Log in</a>
+    </div>
+  } @else if (loading()) {
+    <div class="m-sub-loading" i18n="@@boomboom.m.common.loading">Loading…</div>
+  } @else if (videos().length === 0) {
+    <div class="m-sub-empty">
+      <my-global-icon iconName="history"></my-global-icon>
+      <span i18n="@@boomboom.m.history.empty">You haven't watched anything yet.</span>
+      <a routerLink="/m/feed" class="m-sub-empty-cta" i18n="@@boomboom.m.history.browse">Browse dramas</a>
+    </div>
+  } @else {
+    <m-video-grid [videos]="videos()" (open)="open($event)"></m-video-grid>
+  }
+</div>

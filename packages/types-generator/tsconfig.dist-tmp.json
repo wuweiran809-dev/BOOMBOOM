@@ -1,0 +1,17 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "typeRoots": [
+      "node_modules/@types",
+      "client/node_modules/@types"
+    ],
+    "paths": {
+      "@server/*": [ "./dist-tmp/server/core/*" ],
+      "@client/*": [ "./dist-tmp/client/*" ],
+      "@boomboom/boomboom-models": [ "./dist-tmp/boomboom-models" ],
+      "@boomboom/boomboom-typescript-utils": [ "./dist-tmp/boomboom-typescript-utils" ],
+      "@boomboom/boomboom-transcription": [ "./dist-tmp/boomboom-transcription" ]
+    }
+  }
+}
+

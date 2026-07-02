@@ -1,0 +1,22 @@
+#!/sbin/openrc-run
+supervisor=supervise-daemon
+
+name="BoomBoom"
+description="BoomBoom self-hosted streaming service"
+pidfile=/run/boomboom/boomboom.pid
+output_log=/var/log/boomboom/boomboom.log
+error_log="$output_log"
+command_background=true
+command_user="boomboom:boomboom"
+command=/usr/bin/node
+command_args="${directory}/dist/server"
+required_dirs="$directory $NODE_CONFIG_DIR"
+
+depend() {
+	after redis postgresql
+}
+
+start_pre() {
+	checkpath --directory --owner "$command_user" --mode 0750 "${pidfile%/*}"
+	checkpath --directory --owner "$command_user" --mode 0750 "${output_log%/*}"
+}

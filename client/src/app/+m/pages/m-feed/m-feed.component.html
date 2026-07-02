@@ -1,0 +1,92 @@
+<div
+  class="m-feed"
+  #stage
+  (touchstart)="onTouchStart($event)"
+  (touchmove)="onTouchMove($event)"
+  (touchend)="onTouchEnd()"
+>
+  @if (current; as v) {
+    <!-- poster background -->
+    <div class="m-feed-bg">
+      @if (getThumb(v)) {
+        <img [src]="getThumb(v)" [alt]="v.name" />
+      }
+      <div class="m-feed-grad"></div>
+      <div class="m-feed-grad-accent"></div>
+      <div class="m-feed-halftone"></div>
+    </div>
+
+    <!-- giant outline episode number -->
+    <div class="m-feed-bignum">{{ epNumber() }}</div>
+
+    <!-- top: hamburger + tabs + search -->
+    <div class="m-feed-top">
+      <button class="m-icon-btn" (click)="openMenu()">
+        <my-global-icon iconName="menu"></my-global-icon>
+      </button>
+      <div class="m-feed-tabs">
+        <button class="m-feed-tab" [class.active]="activeTab() === 'following'" (click)="setTab('following')" i18n="@@boomboom.m.feed.tabFollowing">Following</button>
+        <button class="m-feed-tab" [class.active]="activeTab() === 'recommend'" (click)="setTab('recommend')" i18n="@@boomboom.m.feed.tabForYou">For You</button>
+        <button class="m-feed-tab" [class.active]="activeTab() === 'ranking'" (click)="setTab('ranking')" i18n="@@boomboom.m.feed.tabRanking">Ranking</button>
+      </div>
+      <button class="m-icon-btn" (click)="goSearch()">
+        <my-global-icon iconName="search"></my-global-icon>
+      </button>
+    </div>
+
+    <!-- marquee ticker -->
+    <div class="m-feed-marquee">
+      <div class="m-feed-marquee-track">
+        <span>{{ marquee }}</span>
+        <span>{{ marquee }}</span>
+      </div>
+    </div>
+
+    <!-- burst badge -->
+    <div class="m-feed-burst"><span>爆</span></div>
+
+    <!-- title block -->
+    <div class="m-feed-title-block" (click)="openPlayer()">
+      <div class="m-feed-tags">
+        @for (t of tagsFor(index()); track t; let i = $index) {
+          <span class="m-tag" [class.alt]="i === 1">{{ t }}</span>
+        }
+      </div>
+      <div class="m-feed-title">{{ v.name }}</div>
+      <div class="m-feed-desc">{{ v.description || descFallback }}</div>
+      <div class="m-feed-cta">
+        <button class="m-btn-play" (click)="$event.stopPropagation(); openPlayer()">
+          <my-global-icon iconName="play"></my-global-icon>
+          <span i18n="@@boomboom.m.feed.watchNow">Watch Now!</span>
+        </button>
+        <button class="m-btn-mark" [class.on]="isFollowed(v)" (click)="$event.stopPropagation(); toggleFollow(v)">
+          <my-global-icon iconName="playlists"></my-global-icon>
+        </button>
+      </div>
+    </div>
+
+    <!-- chunky stats -->
+    <div class="m-feed-stats">
+      <button class="m-stat" [class.accent]="isLiked(v)" (click)="toggleLike(v)">
+        <my-global-icon iconName="like"></my-global-icon>
+        {{ formatCount(v.likes) }}
+      </button>
+      <button class="m-stat" (click)="openComments()">
+        <my-global-icon iconName="message-circle"></my-global-icon>
+        {{ formatCount(v.comments) }}
+      </button>
+      <button class="m-stat" (click)="share(v)">
+        <my-global-icon iconName="share"></my-global-icon>
+      </button>
+    </div>
+  } @else if (loading()) {
+    <div class="m-feed-empty">
+      <div class="m-feed-spinner"></div>
+    </div>
+  } @else {
+    <div class="m-feed-empty">
+      <my-global-icon iconName="videos"></my-global-icon>
+      <p i18n="@@boomboom.m.feed.noDramas">No dramas yet</p>
+    </div>
+  }
+</div>

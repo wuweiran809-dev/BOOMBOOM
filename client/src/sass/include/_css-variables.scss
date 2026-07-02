@@ -1,0 +1,200 @@
+@use "_variables" as *;
+@use "_mixins" as *;
+
+@mixin define-css-variables() {
+  // ---------------------------------------------------------------------------
+  // New theme with fallback
+  // ---------------------------------------------------------------------------
+
+  --menu-bg: var(--menuBackgroundColor);
+  --menu-fg: var(--menuForegroundColor);
+  --menu-margin-left: #{$menu-margin-left};
+  --menu-width: #{$menu-width};
+  --menu-border-radius: #{$menu-border-radius};
+
+  --fg: var(--mainForegroundColor, #000);
+
+  --bg: var(--mainBackgroundColor, #fff);
+  --bg-secondary: var(--greyBackgroundColor, #E5E5E5);
+
+  --primary: var(--mainColor, #FF4757);
+  --on-primary: #{pvar(--fg)};
+
+  --red: #{$red};
+
+  --green: #{$green};
+
+  --input-fg: var(--inputForegroundColor, #{pvar(--fg)});
+
+  --input-bg: var(--inputBackgroundColor, #{pvar(--bg-secondary-400)});
+  --input-bg-in-modal: #{pvar(--input-bg-550)};
+  --input-bg-in-secondary: #{pvar(--input-bg-600)};
+
+  --input-danger-fg: #9C221C;
+  --input-danger-bg: #FEBBB2;
+
+  --input-placeholder-color: var(--inputPlaceholderColor, #{pvar(--fg-50)});
+  --input-placeholder-font-size: 0.875rem;
+
+  --input-border-color: var(--inputBorderColor, #{pvar(--input-bg)});
+  --input-border-width: 1px;
+
+  --input-check-active-fg: #{pvar(--on-primary)};
+  --input-check-active-bg: #{pvar(--primary)};
+
+  --input-y-padding: 5px;
+  --input-x-padding: 20px;
+
+  --input-border-radius: 20px;
+
+  --textarea-y-padding: 12px;
+  --textarea-x-padding: 15px;
+  --textarea-fg: var(--textareaForegroundColor, #{pvar(--input-fg)});
+  --textarea-bg: var(--textareaBackgroundColor, #{pvar(--input-bg)});
+  --textarea-bg-in-modal: #{pvar(--input-bg-in-modal)};
+  --textarea-bg-in-secondary: #{pvar(--input-bg-in-secondary)};
+
+  --support-btn-fg: var(--supportButtonColor, #{pvar(--fg-300)});
+  --support-btn-bg: var(--supportButtonBackgroundColor, transparent);
+  --support-btn-heart-bg: var(--supportButtonHeartColor, #{pvar(--support-btn-fg)});
+
+  --x-margin-content: 2rem;
+
+  --secondary-icon-color: #{pvar(--fg-50)};
+  --active-icon-color: #{pvar(--on-primary)};
+  --active-icon-bg: #{pvar(--primary)};
+
+  --border-primary: #{pvar(--primary)};
+  --border-secondary: #{pvar(--bg-secondary-450)};
+
+  --alert-primary-fg: #{pvar(--on-primary-200)};
+  --alert-primary-bg: #{pvar(--primary-200)};
+  --alert-primary-border-color: #{pvar(--primary-300)};
+
+  --pt-player-fg: #fff;
+  --pt-player-big-play-bg: rgba(0, 0, 0, 0.8);
+
+  --menu-fg: #{pvar(--fg-400)};
+  --menu-bg: #{pvar(--bg-secondary-400)};
+
+  --header-fg: #{pvar(--fg)};
+  --header-bg: #{pvar(--bg)};
+
+  --pt-player-overlay-secondary-fg: #{pvar(--fg-400)};
+  --pt-player-overlay-secondary-bg: #{pvar(--bg-secondary-400)};
+
+  // ---------------------------------------------------------------------------
+
+  --tmp-header-height: #{$header-height};
+
+  @media screen and (max-width: $small-view) {
+    --tmp-header-height: #{$header-height-small-view};
+  }
+
+  @media screen and (max-width: $mobile-view) {
+    --tmp-header-height: #{$header-height-mobile-view};
+
+    &.global-search-hidden {
+      --tmp-header-height: #{$header-height-mobile-view-without-search};
+    }
+  }
+
+  --header-height: #{pvar(--tmp-header-height)};
+
+  &.mobile-app-msg {
+    --header-height: calc(#{pvar(--tmp-header-height)} + #{$header-mobile-msg-height});
+  }
+
+  // ---------------------------------------------------------------------------
+
+  // Light theme - BoomBoom Clean
+  &[data-pt-theme="boomboom-core-light-beige"],
+  &[data-pt-theme="default"] {
+    --is-dark: 0;
+
+    --primary: #FF4757;
+    --border-primary: #{pvar(--primary-650)};
+
+    --fg: #1C1E21;
+    --fg-200: #57606A;
+
+    --bg: #F6F8FA;
+    --bg-secondary: #D0D7DE;
+    --bg-secondary-500: #D0D7DE;
+    --bg-secondary-450: #E1E4E8;
+    --bg-secondary-400: #EAEEF2;
+    --bg-secondary-350: #F0F3F6;
+
+    --menu-bg-600: #D0D7DE;
+    --menu-bg-550: #E1E4E8;
+    --menu-bg: #EAEEF2;
+
+    --secondary-icon-color: #57606A;
+    --input-placeholder-color: #8B949E;
+
+    --input-check-active-fg: #{pvar(--bg)};
+    --input-check-active-bg: #{pvar(--fg-250)};
+
+    --alert-primary-fg: #{pvar(--on-primary-200)};
+    --alert-primary-bg: #{pvar(--primary-200)};
+    --alert-primary-border-color: #{pvar(--primary-300)};
+  }
+
+  // Dark theme - BoomBoom Midnight
+  &[data-pt-theme="boomboom-core-dark-brown"] {
+    --is-dark: 1;
+
+    --primary: #FF4757;
+    --on-primary: #fff;
+    --border-primary: #{pvar(--primary-350)};
+
+    --input-bg: #{pvar(--bg-secondary-450)};
+
+    --input-danger-fg: #FF6B81;
+    --input-danger-bg: #8B1A1A;
+
+    --fg: #F0F6FC;
+
+    --bg: #0D1117;
+    --bg-secondary: #161B22;
+    --bg-secondary-500: #21262D;
+    --bg-secondary-450: #30363D;
+    --bg-secondary-400: #161B22;
+    --bg-secondary-350: #1C2128;
+
+    --menu-bg-600: #21262D;
+    --menu-bg-550: #30363D;
+    --menu-bg: #161B22;
+
+    --header-bg: #0D1117;
+
+    --secondary-icon-color: #8B949E;
+    --input-placeholder-color: #484F58;
+
+    --alert-primary-fg: #{pvar(--on-primary)};
+    --alert-primary-bg: #6e2b2b;
+    --alert-primary-border-color: #{pvar(--primary-600)};
+
+    --active-icon-color: #{pvar(--fg-450)};
+    --active-icon-bg: #{pvar(--bg-secondary-600)};
+  }
+}
+
+@mixin define-input-css-variables-in-secondary() {
+  --textarea-bg: #{pvar(--textarea-bg-in-secondary)};
+
+  @include define-input-css-variables(pvar(--input-bg-in-secondary));
+}
+
+@mixin define-input-css-variables-in-modal() {
+  --textarea-bg: #{pvar(--textarea-bg-in-modal)};
+
+  @include define-input-css-variables(pvar(--input-bg-in-modal));
+}
+
+@mixin define-input-css-variables($value) {
+  --input-bg: #{$value};
+  --input-border-color: #{$value};
+  --p-multiselect-background: #{$value};
+  --p-select-background: #{$value};
+}

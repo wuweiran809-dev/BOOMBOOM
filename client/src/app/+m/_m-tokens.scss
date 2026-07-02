@@ -1,0 +1,94 @@
+// ============================================================================
+// BoomBoom 移动端「动感海报风」设计令牌 + mixin
+// 源自原型 Option 2b (要爆了 BOOM · 动感海报风)
+// ============================================================================
+
+// -- Colors --
+$bg: #0D1117;
+$surface-card: #161B22;
+$surface-raised: #1C222B;
+$surface-sunken: #10151C;
+$surface-code: #0A0E14;
+
+$accent: #FF4757;
+$accent-press: #E63A48;
+$accent-soft: rgba(255, 71, 87, 0.15);
+$accent-border: rgba(255, 71, 87, 0.42);
+$accent2: #FFA502;
+$accent2-soft: rgba(255, 165, 2, 0.15);
+
+$info: #409EFF;
+$success: #34d399;
+$ink: #231400; // text on gold/gradient
+
+$border: rgba(255, 255, 255, 0.08);
+$border-strong: rgba(255, 255, 255, 0.16);
+
+$text: #E6EDF3;
+$text-secondary: rgba(255, 255, 255, 0.7);
+$text-muted: rgba(255, 255, 255, 0.45);
+
+$logo-grad: linear-gradient(135deg, #FF4757, #FFA502);
+$gold-grad: linear-gradient(135deg, #FFA502, #FF7A00);
+
+// -- Fonts --
+$font-display: 'ZCOOL QingKe HuangYou', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+$font-serif: 'Noto Serif SC', serif;
+$font-mono: 'SF Mono', 'Menlo', 'Consolas', monospace;
+
+// -- Signature sticker: 2px black border + hard offset shadow (no blur) --
+@mixin sticker($shadow: 4px, $rotate: 0deg, $border: 2px) {
+  border: $border solid #000;
+  box-shadow: #{$shadow} #{$shadow} 0 rgba(0, 0, 0, 0.6);
+  @if $rotate != 0deg {
+    transform: rotate($rotate);
+  }
+}
+
+@mixin sticker-solid($shadow: 4px, $rotate: 0deg, $border: 2px) {
+  border: $border solid #000;
+  box-shadow: #{$shadow} #{$shadow} 0 #000;
+  @if $rotate != 0deg {
+    transform: rotate($rotate);
+  }
+}
+
+// -- Big poster title: ZCOOL + double hard text-shadow, tilted --
+@mixin poster-title($size: 40px, $rotate: -2deg) {
+  font-family: $font-display;
+  font-size: $size;
+  line-height: 0.98;
+  color: #fff;
+  transform: rotate($rotate);
+  text-shadow: 3px 3px 0 $accent, 6px 6px 0 rgba(0, 0, 0, 0.4);
+}
+
+// -- Halftone dot corner (comic pop) --
+@mixin halftone($color: $accent2, $size: 12px) {
+  background-image: radial-gradient(circle, $color 1.6px, transparent 2px);
+  background-size: $size $size;
+  -webkit-mask-image: linear-gradient(225deg, #000, transparent 70%);
+  mask-image: linear-gradient(225deg, #000, transparent 70%);
+}
+
+// -- Hide scrollbar for horizontal strips --
+@mixin no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar { display: none; }
+}
+
+// -- Chunky stat pill (translucent black + accent border) --
+@mixin stat-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 13px;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  border-radius: 999px;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+}
