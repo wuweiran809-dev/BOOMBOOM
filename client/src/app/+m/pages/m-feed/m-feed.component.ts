@@ -1,3 +1,5 @@
+import { forkJoin, of } from 'rxjs'
+import { catchError } from 'rxjs/operators'
 import { ChangeDetectionStrategy, Component, ElementRef, OnInit, inject, signal, viewChild } from '@angular/core'
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser'
 import { Router } from '@angular/router'
@@ -35,20 +37,34 @@ export class MFeedComponent implements OnInit {
 
   videos = signal<Video[]>([])
   index = signal(0)
-  // Inline autoplay (muted, looping) of the active card — swipe-to-watch.
-  embedUrl = signal<SafeResourceUrl | null>(null)
   loading = signal(false)
   activeTab = signal<FeedTab>('recommend')
 
+  // "swipe up for more" hint on the first video
+  showHint = signal(true)
+
   readonly descFallback = $localize`:@@boomboom.m.feed.descFallback:A must-watch drama you won't be able to stop.`
+
+  // genre affinity (session personalization): categories the viewer engages with
+  private affinityGenres = new Set<string>()
+  private embedCache = new Map<string, SafeResourceUrl>()
 
   private startY = 0
   private curY = 0
   private dragging = false
+  private startTarget: HTMLElement | null = null
   private pagination = { currentPage: 1, itemsPerPage: 10, totalItems: 0 }
 
   ngOnInit () {
+    // show the swipe hint on the first video until the user swipes once (ever)
+    try { this.showHint.set(!localStorage.getItem('bb-feed-hint-seen')) } catch { this.showHint.set(true) }
     this.load()
+  }
+
+  private dismissHint () {
+    if (!this.showHint()) return
+    this.showHint.set(false)
+    try { localStorage.setItem('bb-feed-hint-seen', '1') } catch {}
   }
 
   get current (): Video | undefined {
@@ -68,14 +84,13 @@ export class MFeedComponent implements OnInit {
     this.activeTab.set(tab)
     this.videos.set([])
     this.index.set(0)
-    this.embedUrl.set(null)
     this.pagination.currentPage = 1
     this.load()
   }
 
   private sortForTab (): VideoSortField {
     switch (this.activeTab()) {
-      case 'following': return '-publishedAt' as VideoSortField
+      case 'ranking': return '-views' as VideoSortField
       default: return '-trending' as VideoSortField
     }
   }
@@ -84,22 +99,79 @@ export class MFeedComponent implements OnInit {
     if (this.loading()) return
     this.loading.set(true)
 
-    this.videoService.listVideos({
-      videoPagination: this.pagination,
-      sort: this.sortForTab(),
-      nsfw: 'false'
-    }).subscribe({
-      next: ({ data, total }) => {
-        // "For You" = recommendation feed: shuffle each page for random variety
-        const batch = this.activeTab() === 'recommend' ? this.shuffle([ ...data ]) : data
-        const wasEmpty = this.videos().length === 0
-        this.videos.update(prev => [ ...prev, ...batch ])
-        this.pagination.totalItems = total
-        this.loading.set(false)
-        if (wasEmpty) this.syncEmbed()
-      },
-      error: () => this.loading.set(false)
-    })
+    const firstPage = this.pagination.currentPage === 1
+    const tab = this.activeTab()
+
+    // Following tab = videos from channels you follow
+    if (tab === 'following' && this.auth.isLoggedIn()) {
+      this.subscriptionService.getUserSubscriptionVideos({ videoPagination: this.pagination, sort: '-publishedAt' as VideoSortField })
+        .subscribe({
+          next: ({ data, total }) => this.appendPage(data, total, false),
+          error: () => this.loading.set(false)
+        })
+      return
+    }
+
+    // Recommend first page = blend of followed creators + trending (+ genre affinity)
+    if (tab === 'recommend' && firstPage && this.auth.isLoggedIn()) {
+      forkJoin({
+        trending: this.videoService.listVideos({ videoPagination: this.pagination, sort: '-trending' as VideoSortField, nsfw: 'false' }),
+        subs: this.subscriptionService
+          .getUserSubscriptionVideos({ videoPagination: { currentPage: 1, itemsPerPage: 10, totalItems: 0 }, sort: '-publishedAt' as VideoSortField })
+          .pipe(catchError(() => of({ data: [] as Video[], total: 0 })))
+      }).subscribe({
+        next: ({ trending, subs }) => {
+          this.videos.set(this.blend(subs.data, trending.data))
+          this.pagination.totalItems = trending.total
+          this.loading.set(false)
+        },
+        error: () => this.loading.set(false)
+      })
+      return
+    }
+
+    // Default: append a page (shuffle recommend for variety)
+    this.videoService.listVideos({ videoPagination: this.pagination, sort: this.sortForTab(), nsfw: 'false' })
+      .subscribe({
+        next: ({ data, total }) => this.appendPage(data, total, tab === 'recommend'),
+        error: () => this.loading.set(false)
+      })
+  }
+
+  private appendPage (data: Video[], total: number, shuffle: boolean) {
+    const batch = shuffle ? this.shuffle([ ...data ]) : data
+    this.videos.update(prev => this.dedupe([ ...prev, ...batch ]))
+    this.pagination.totalItems = total
+    this.loading.set(false)
+  }
+
+  // followed creators first, then genre-affinity trending, then the rest — each shuffled
+  private blend (subs: Video[], trending: Video[]): Video[] {
+    const seen = new Set<string>()
+    const take = (arr: Video[]) => {
+      const out: Video[] = []
+      for (const v of arr) { if (!seen.has(v.uuid)) { seen.add(v.uuid); out.push(v) } }
+      return out
+    }
+
+    const followed = take(subs)
+    const rest = take(trending)
+
+    const aff: Video[] = []
+    const other: Video[] = []
+    for (const v of rest) {
+      if (this.affinityGenres.size && v.category?.label && this.affinityGenres.has(v.category.label)) aff.push(v)
+      else other.push(v)
+    }
+
+    return [ ...this.shuffle(followed), ...this.shuffle(aff), ...this.shuffle(other) ]
+  }
+
+  private dedupe (vids: Video[]): Video[] {
+    const seen = new Set<string>()
+    const out: Video[] = []
+    for (const v of vids) { if (!seen.has(v.uuid)) { seen.add(v.uuid); out.push(v) } }
+    return out
   }
 
   private shuffle<T> (a: T[]): T[] {
@@ -110,22 +182,33 @@ export class MFeedComponent implements OnInit {
     return a
   }
 
-  // Autoplay the active video inline (muted + loop), so swiping = watching.
-  private syncEmbed () {
-    const v = this.current
-    if (!v) { this.embedUrl.set(null); return }
+  // -- Windowed slides: render current ±1 so the neighbour is preloaded (no reload on swipe) --
+  windowVideos (): { v: Video, i: number }[] {
+    const vids = this.videos()
+    const idx = this.index()
+    const out: { v: Video, i: number }[] = []
+    for (let i = Math.max(0, idx - 1); i <= Math.min(vids.length - 1, idx + 1); i++) {
+      out.push({ v: vids[i], i })
+    }
+    return out
+  }
+
+  slideEmbed (v: Video): SafeResourceUrl {
+    const cached = this.embedCache.get(v.uuid)
+    if (cached) return cached
 
     const base = v.embedUrl || (window.location.origin + v.embedPath)
     const sep = base.includes('?') ? '&' : '?'
     const url = base + sep + 'autoplay=1&muted=1&loop=1&controls=0&title=0&warningTitle=0&peertubeLink=0&p2p=0'
-    this.embedUrl.set(this.sanitizer.bypassSecurityTrustResourceUrl(url))
+    const safe = this.sanitizer.bypassSecurityTrustResourceUrl(url)
+    this.embedCache.set(v.uuid, safe)
+    return safe
   }
 
   getThumb (v: Video): string {
     return v?.thumbnails?.[0]?.fileUrl || ''
   }
 
-  // Real tags from the current video (falls back to its category); no fake tags.
   tagsFor (i: number): string[] {
     const v = this.videos()[i]
     if (!v) return []
@@ -137,7 +220,6 @@ export class MFeedComponent implements OnInit {
     return cat ? [ '#' + cat ] : []
   }
 
-  // Real position in the trending feed (not a fake episode number).
   epNumber (): string {
     return String(this.index() + 1)
   }
@@ -186,7 +268,12 @@ export class MFeedComponent implements OnInit {
     obs.subscribe({
       next: () => {
         const s = new Set(this.likedIds())
-        if (liked) { s.delete(v.uuid); v.likes = Math.max(0, (v.likes || 0) - 1) } else { s.add(v.uuid); v.likes = (v.likes || 0) + 1 }
+        if (liked) { s.delete(v.uuid); v.likes = Math.max(0, (v.likes || 0) - 1) } else {
+          s.add(v.uuid)
+          v.likes = (v.likes || 0) + 1
+          // learn genre affinity from likes -> personalizes future recommend loads
+          if (v.category?.label) this.affinityGenres.add(v.category.label)
+        }
         this.likedIds.set(s)
       },
       error: err => this.notifier.error(err.message)
@@ -243,8 +330,6 @@ export class MFeedComponent implements OnInit {
   }
 
   // -- Swipe + tap-to-enter --
-  private startTarget: HTMLElement | null = null
-
   onTouchStart (e: TouchEvent) {
     this.startY = e.touches[0].clientY
     this.curY = this.startY
@@ -263,7 +348,6 @@ export class MFeedComponent implements OnInit {
 
     const dy = this.startY - this.curY
 
-    // small movement = a tap: enter the drama (unless tapping an interactive control)
     if (Math.abs(dy) < 70) {
       if (!this.startTarget?.closest('button, a, input')) this.openPlayer()
       return
@@ -274,10 +358,10 @@ export class MFeedComponent implements OnInit {
   }
 
   private next () {
+    this.dismissHint()
     const vids = this.videos()
     if (this.index() < vids.length - 1) {
       this.index.update(i => i + 1)
-      this.syncEmbed()
       if (this.index() >= vids.length - 3) {
         this.pagination.currentPage++
         this.load()
@@ -286,9 +370,7 @@ export class MFeedComponent implements OnInit {
   }
 
   private prev () {
-    if (this.index() > 0) {
-      this.index.update(i => i - 1)
-      this.syncEmbed()
-    }
+    this.dismissHint()
+    if (this.index() > 0) this.index.update(i => i - 1)
   }
 }

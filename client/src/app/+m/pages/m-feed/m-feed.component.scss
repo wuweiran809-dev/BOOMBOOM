@@ -15,9 +15,18 @@
 }
 
 // -- poster background --
-.m-feed-bg {
+// sliding video track (windowed: current ±1 preloaded)
+.m-feed-track {
   position: absolute;
   inset: 0;
+  overflow: hidden;
+}
+
+.m-feed-slide {
+  position: absolute;
+  inset: 0;
+  transition: transform 0.32s cubic-bezier(0.22, 0.61, 0.36, 1);
+  will-change: transform;
 
   img {
     width: 100%;
@@ -25,8 +34,7 @@
     object-fit: cover;
   }
 
-  // inline autoplay video (over the poster, under the gradients/UI).
-  // pointer-events:none so swipe/tap pass through to the feed container.
+  // inline autoplay video; pointer-events:none so swipe/tap pass through
   .m-feed-video {
     position: absolute;
     inset: 0;
@@ -36,28 +44,58 @@
     pointer-events: none;
     background: #000;
   }
+}
 
-  .m-feed-grad {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(180deg, rgba(11, 13, 18, 0.35), transparent 26%, transparent 40%, rgba(11, 13, 18, 0.94));
-  }
+// fixed gradients / halftone over the video (pointer-events none)
+.m-feed-grad {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(11, 13, 18, 0.35), transparent 26%, transparent 40%, rgba(11, 13, 18, 0.94));
+}
 
-  .m-feed-grad-accent {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(115deg, rgba(255, 71, 87, 0.32), transparent 42%);
-  }
+.m-feed-grad-accent {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(115deg, rgba(255, 71, 87, 0.32), transparent 42%);
+}
 
-  .m-feed-halftone {
-    position: absolute;
-    top: 70px;
-    right: 0;
-    width: 180px;
-    height: 180px;
-    opacity: 0.5;
-    @include m.halftone(m.$accent2, 12px);
-  }
+.m-feed-halftone {
+  position: absolute;
+  top: 70px;
+  right: 0;
+  width: 180px;
+  height: 180px;
+  opacity: 0.5;
+  pointer-events: none;
+  @include m.halftone(m.$accent2, 12px);
+}
+
+// "swipe up for more" hint on the first video
+.m-feed-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 188px;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  z-index: 6;
+  pointer-events: none;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.85);
+  animation: m-hint-bounce 1.5s ease-in-out infinite;
+
+  my-global-icon { width: 24px; height: 24px; }
+}
+
+@keyframes m-hint-bounce {
+  0%, 100% { transform: translateX(-50%) translateY(0); opacity: 0.85; }
+  50% { transform: translateX(-50%) translateY(-9px); opacity: 1; }
 }
 
 // -- giant outline episode number --

@@ -5,27 +5,31 @@
   (touchmove)="onTouchMove($event)"
   (touchend)="onTouchEnd()"
 >
-  @if (current; as v) {
-    <!-- poster background + inline autoplay video -->
-    <div class="m-feed-bg">
-      @if (getThumb(v)) {
-        <img [src]="getThumb(v)" [alt]="v.name" />
-      }
-      @if (embedUrl()) {
+  <!-- sliding video track: current ±1 preloaded so swipes don't reload -->
+  <div class="m-feed-track">
+    @for (s of windowVideos(); track s.v.uuid) {
+      <div class="m-feed-slide" [style.transform]="'translateY(' + ((s.i - index()) * 100) + '%)'">
+        @if (getThumb(s.v)) {
+          <img [src]="getThumb(s.v)" [alt]="s.v.name" />
+        }
         <iframe
           class="m-feed-video"
-          [src]="embedUrl()"
+          [src]="slideEmbed(s.v)"
           frameborder="0"
           allow="autoplay; fullscreen"
           allowfullscreen
           sandbox="allow-same-origin allow-scripts allow-popups"
         ></iframe>
-      }
-      <div class="m-feed-grad"></div>
-      <div class="m-feed-grad-accent"></div>
-      <div class="m-feed-halftone"></div>
-    </div>
+      </div>
+    }
+  </div>
 
+  <!-- fixed gradients / halftone over the video -->
+  <div class="m-feed-grad"></div>
+  <div class="m-feed-grad-accent"></div>
+  <div class="m-feed-halftone"></div>
+
+  @if (current; as v) {
     <!-- giant outline episode number -->
     <div class="m-feed-bignum">{{ epNumber() }}</div>
 
@@ -89,6 +93,14 @@
         <my-global-icon iconName="share"></my-global-icon>
       </button>
     </div>
+
+    <!-- swipe-up hint on the first video -->
+    @if (showHint() && index() === 0) {
+      <div class="m-feed-hint">
+        <my-global-icon iconName="chevron-up"></my-global-icon>
+        <span i18n="@@boomboom.m.feed.swipeHint">Swipe up for more</span>
+      </div>
+    }
   } @else if (loading()) {
     <div class="m-feed-empty">
       <div class="m-feed-spinner"></div>
