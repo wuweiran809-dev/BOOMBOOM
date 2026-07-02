@@ -29367,6 +29367,118 @@ Ensure you have correctly configured BoomBoom (config/ directory), in particular
         <source>Auto-play next episode</source>
         <target state="translated">自动播放下一集</target>
       </trans-unit>
+      <trans-unit id="boomboom.m.upload.videoLabel" datatype="html">
+        <source>Video</source>
+        <target state="translated">视频</target>
+      </trans-unit>
+      <trans-unit id="boomboom.m.upload.needVideo" datatype="html">
+        <source>Pick a video first</source>
+        <target state="translated">请先选择视频</target>
+      </trans-unit>
+      <trans-unit id="boomboom.m.upload.needTitle" datatype="html">
+        <source>Add a title first</source>
+        <target state="translated">请先填写标题</target>
+      </trans-unit>
+      <trans-unit id="boomboom.m.upload.noChannel" datatype="html">
+        <source>No channel available</source>
+        <target state="translated">没有可用频道</target>
+      </trans-unit>
+      <trans-unit id="boomboom.m.upload.failed" datatype="html">
+        <source>Publish failed, please try again</source>
+        <target state="translated">发布失败,请重试</target>
+      </trans-unit>
+      <trans-unit id="boomboom.m.upload.published" datatype="html">
+        <source>Published!</source>
+        <target state="translated">发布成功!</target>
+      </trans-unit>
+      <trans-unit id="boomboom.m.upload.coins" datatype="html">
+        <source>coins</source>
+        <target state="translated">金币</target>
+      </trans-unit>
+      <trans-unit id="boomboom.m.upload.publishing" datatype="html">
+        <source>Publishing…</source>
+        <target state="translated">发布中…</target>
+      </trans-unit>
+      <trans-unit id="boomboom.m.create.loginNeeded" datatype="html">
+        <source>Log in to create.</source>
+        <target state="translated">登录后才能创作</target>
+      </trans-unit>
+      <trans-unit id="boomboom.m.create.login" datatype="html">
+        <source>Log in</source>
+        <target state="translated">登录</target>
+      </trans-unit>
+      <trans-unit id="boomboom.m.create.uploadOwn" datatype="html">
+        <source>Upload your own drama</source>
+        <target state="translated">上传你自己的短剧</target>
+      </trans-unit>
+      <trans-unit id="boomboom.m.create.uploadOwnSub" datatype="html">
+        <source>Pick a video from your phone</source>
+        <target state="translated">从手机里选一个视频</target>
+      </trans-unit>
+      <trans-unit id="boomboom.m.create.importTitle" datatype="html">
+        <source>Import from 短剧工坊</source>
+        <target state="translated">从短剧工坊导入</target>
+      </trans-unit>
+      <trans-unit id="boomboom.m.create.disconnect" datatype="html">
+        <source>Disconnect</source>
+        <target state="translated">断开连接</target>
+      </trans-unit>
+      <trans-unit id="boomboom.m.create.connectHint" datatype="html">
+        <source>Connect your 短剧工坊 account to import the videos you generated there.</source>
+        <target state="translated">连接你的短剧工坊账号,把你在那边生成的短剧导入进来。</target>
+      </trans-unit>
+      <trans-unit id="boomboom.m.create.userPlaceholder" datatype="html">
+        <source>短剧工坊 账号</source>
+        <target state="translated">短剧工坊 账号</target>
+      </trans-unit>
+      <trans-unit id="boomboom.m.create.pwPlaceholder" datatype="html">
+        <source>密码</source>
+        <target state="translated">密码</target>
+      </trans-unit>
+      <trans-unit id="boomboom.m.create.connecting" datatype="html">
+        <source>Connecting…</source>
+        <target state="translated">连接中…</target>
+      </trans-unit>
+      <trans-unit id="boomboom.m.create.connect" datatype="html">
+        <source>Connect</source>
+        <target state="translated">连接</target>
+      </trans-unit>
+      <trans-unit id="boomboom.m.create.connectedAs" datatype="html">
+        <source>Connected as</source>
+        <target state="translated">已连接:</target>
+      </trans-unit>
+      <trans-unit id="boomboom.m.create.importing" datatype="html">
+        <source>Importing…</source>
+        <target state="translated">导入中…</target>
+      </trans-unit>
+      <trans-unit id="boomboom.m.create.import" datatype="html">
+        <source>Import</source>
+        <target state="translated">导入</target>
+      </trans-unit>
+      <trans-unit id="boomboom.m.create.connected" datatype="html">
+        <source>Connected to 短剧工坊</source>
+        <target state="translated">已连接短剧工坊</target>
+      </trans-unit>
+      <trans-unit id="boomboom.m.create.connectFail" datatype="html">
+        <source>Connection failed — check your account</source>
+        <target state="translated">连接失败,请检查账号</target>
+      </trans-unit>
+      <trans-unit id="boomboom.m.create.noChannel" datatype="html">
+        <source>No channel available</source>
+        <target state="translated">没有可用频道</target>
+      </trans-unit>
+      <trans-unit id="boomboom.m.create.imported" datatype="html">
+        <source>Imported to BOOMBOOM</source>
+        <target state="translated">已导入 BOOMBOOM</target>
+      </trans-unit>
+      <trans-unit id="boomboom.m.create.importFail" datatype="html">
+        <source>Import failed, please try again</source>
+        <target state="translated">导入失败,请重试</target>
+      </trans-unit>
+      <trans-unit id="boomboom.m.source.duanju" datatype="html">
+        <source>短剧工坊</source>
+        <target state="translated">短剧工坊</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

@@ -1,7 +1,10 @@
+import { HttpClient, HttpEventType } from '@angular/common/http'
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core'
 import { FormsModule } from '@angular/forms'
 import { Router } from '@angular/router'
+import { AuthService, Notifier } from '@app/core'
 import { GlobalIconComponent } from '@app/shared/shared-icons/global-icon.component'
+import { environment } from '../../../../environments/environment'
 
 @Component({
   selector: 'm-upload',
@@ -12,10 +15,21 @@ import { GlobalIconComponent } from '@app/shared/shared-icons/global-icon.compon
 })
 export class MUploadComponent {
   private router = inject(Router)
+  private http = inject(HttpClient)
+  private auth = inject(AuthService)
+  private notifier = inject(Notifier)
 
   title = ''
   desc = ''
   paidUnlock = signal(false)
+  coinPrice = 50
+
+  videoFile = signal<File | null>(null)
+  coverFile = signal<File | null>(null)
+  coverPreview = signal<string>('')
+
+  uploading = signal(false)
+  progress = signal(0)
 
   readonly genres = [
     $localize`:@@boomboom.m.upload.genre.0:Urban`,
@@ -26,6 +40,15 @@ export class MUploadComponent {
   ]
 
   selectedGenre = signal(this.genres[0])
+
+  private get channelId (): number | null {
+    const chans = (this.auth.getUser() as any)?.videoChannels
+    return chans && chans.length ? chans[0].id : null
+  }
+
+  get videoName (): string {
+    return this.videoFile()?.name || ''
+  }
 
   cancel () {
     this.router.navigate([ '/m/feed' ])
@@ -39,10 +62,80 @@ export class MUploadComponent {
     this.paidUnlock.update(v => !v)
   }
 
-  // Delegate to the real (working) upload engine, carrying the drama title
+  onVideoPicked (event: Event) {
+    const input = event.target as HTMLInputElement
+    const f = input.files?.[0]
+    if (f) this.videoFile.set(f)
+    input.value = ''
+  }
+
+  onCoverPicked (event: Event) {
+    const input = event.target as HTMLInputElement
+    const f = input.files?.[0]
+    if (f) {
+      this.coverFile.set(f)
+      this.coverPreview.set(URL.createObjectURL(f))
+    }
+    input.value = ''
+  }
+
   publish () {
-    this.router.navigate([ '/videos/publish' ], {
-      queryParams: this.title.trim() ? { dramaTitle: this.title.trim() } : {}
-    })
+    if (this.uploading()) return
+
+    if (!this.auth.isLoggedIn()) {
+      this.router.navigate([ '/m/login' ])
+      return
+    }
+
+    const file = this.videoFile()
+    const name = this.title.trim()
+    const chId = this.channelId
+
+    if (!file) { this.notifier.error($localize`:@@boomboom.m.upload.needVideo:Pick a video first`); return }
+    if (!name) { this.notifier.error($localize`:@@boomboom.m.upload.needTitle:Add a title first`); return }
+    if (!chId) { this.notifier.error($localize`:@@boomboom.m.upload.noChannel:No channel available`); return }
+
+    const fd = new FormData()
+    fd.append('videofile', file, file.name)
+    fd.append('channelId', String(chId))
+    fd.append('name', name)
+    fd.append('privacy', '1')
+    if (this.desc.trim()) fd.append('description', this.desc.trim())
+    if (this.coverFile()) fd.append('thumbnailfile', this.coverFile(), this.coverFile().name)
+
+    this.uploading.set(true)
+    this.progress.set(0)
+
+    this.http.post(`${environment.apiUrl}/api/v1/videos/upload`, fd, { reportProgress: true, observe: 'events' })
+      .subscribe({
+        next: ev => {
+          if (ev.type === HttpEventType.UploadProgress && ev.total) {
+            this.progress.set(Math.round((ev.loaded / ev.total) * 100))
+          } else if (ev.type === HttpEventType.Response) {
+            this.afterUpload((ev.body as any)?.video)
+          }
+        },
+        error: () => {
+          this.notifier.error($localize`:@@boomboom.m.upload.failed:Publish failed, please try again`)
+          this.uploading.set(false)
+        }
+      })
+  }
+
+  private afterUpload (video: any) {
+    const finish = () => {
+      this.uploading.set(false)
+      this.notifier.success($localize`:@@boomboom.m.upload.published:Published!`)
+      if (video?.shortUUID || video?.uuid) this.router.navigate([ '/m/w', video.shortUUID || video.uuid ])
+      else this.router.navigate([ '/m/me' ])
+    }
+
+    // set the paid-unlock price on the freshly uploaded video
+    if (this.paidUnlock() && video?.id) {
+      this.http.put(`${environment.apiUrl}/api/v1/users/me/videos/${video.id}/price`, { coinPrice: this.coinPrice })
+        .subscribe({ next: finish, error: finish })
+    } else {
+      finish()
+    }
   }
 }

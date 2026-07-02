@@ -166,6 +166,86 @@
 
     my-global-icon { width: 22px; height: 22px; color: m.$text-muted; }
   }
+
+  // selected video file tile (spans full width)
+  .m-up-epfile {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    background: m.$accent-soft;
+    border-radius: 12px;
+    cursor: pointer;
+    @include m.sticker-solid(3px);
+
+    my-global-icon { width: 20px; height: 20px; color: m.$accent; flex: none; }
+
+    .fn {
+      flex: 1;
+      min-width: 0;
+      font-size: 13px;
+      font-weight: 700;
+      color: m.$text;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+}
+
+// cover preview (background image set inline)
+.m-up-cover {
+  background-size: cover;
+  background-position: center;
+}
+
+// price input inline
+.m-up-price-input {
+  width: 68px;
+  height: 30px;
+  margin: 0 4px;
+  padding: 0 8px;
+  border-radius: 8px;
+  border: 2px solid #000;
+  background: m.$surface-sunken;
+  color: m.$accent2;
+  font-family: m.$font-mono;
+  font-weight: 700;
+  font-size: 14px;
+  text-align: center;
+  outline: none;
+}
+
+// upload progress
+.m-up-progress {
+  margin-top: 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  .bar {
+    flex: 1;
+    height: 12px;
+    border-radius: 999px;
+    background: m.$surface-sunken;
+    border: 2px solid #000;
+    overflow: hidden;
+
+    .fill {
+      height: 100%;
+      background: m.$logo-grad;
+      transition: width 0.2s;
+    }
+  }
+
+  .pct {
+    flex: none;
+    font-family: m.$font-mono;
+    font-weight: 800;
+    font-size: 13px;
+    color: m.$accent2;
+  }
 }
 
 // -- pricing --

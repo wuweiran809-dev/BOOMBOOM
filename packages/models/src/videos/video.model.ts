@@ -76,6 +76,9 @@ export interface Video extends Partial<VideoAdditionalAttributes> {
 
   // BoomBoom paid unlock: coin price to watch (0 = free)
   coinPrice?: number
+
+  // BoomBoom attribution: external origin of an imported video (e.g. 'duanju')
+  externalSource?: string | null
   comments: number
 
   nsfw: boolean

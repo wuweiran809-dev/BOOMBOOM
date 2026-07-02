@@ -18,6 +18,9 @@ import { Video } from '@app/shared/shared-main/video/video.model'
             } @else {
               <div class="m-poster-ph"><my-global-icon iconName="videos"></my-global-icon></div>
             }
+            @if (srcLabel(v)) {
+              <span class="m-src-badge">{{ srcLabel(v) }}</span>
+            }
             <div class="m-poster-grad"></div>
             <div class="m-poster-info">
               <div class="m-poster-name">{{ v.name }}</div>
@@ -39,6 +42,13 @@ export class MVideoGridComponent {
   thumb (v: Video): string {
     const t = v?.thumbnails
     return t && t.length > 0 ? t[0].fileUrl : ''
+  }
+
+  // Attribution label for imported videos ("来源")
+  srcLabel (v: Video): string {
+    const s = (v as any)?.externalSource
+    if (s === 'duanju') return $localize`:@@boomboom.m.source.duanju:短剧工坊`
+    return ''
   }
 
   formatHot (n: number): string {

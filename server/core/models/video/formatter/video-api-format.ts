@@ -134,6 +134,7 @@ export function videoModelToFormattedJSON (video: MVideoFormattable, options: Vi
     isLive: video.isLive,
 
     coinPrice: video.coinPrice ?? 0,
+    externalSource: video.externalSource ?? null,
 
     account: video.VideoChannel.Account.toFormattedSummaryJSON(),
     channel: video.VideoChannel.toFormattedSummaryJSON(),

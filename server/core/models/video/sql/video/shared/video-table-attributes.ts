@@ -308,6 +308,7 @@ export class VideoTableAttributes {
       'commentsPolicy',
       'downloadEnabled',
       'coinPrice',
+      'externalSource',
       'embedPrivacyPolicy',
       'waitTranscoding',
       'state',

@@ -1,219 +1,268 @@
 @use '../../m-tokens' as m;
 
-:host { display: block; }
-
-.m-create {
-  position: relative;
-  min-height: 100vh;
+:host {
+  display: block;
+  min-height: 100dvh;
   background: m.$bg;
-  padding: 44px 18px 100px;
-  overflow: hidden;
+  color: m.$text;
 }
 
-.m-create-halftone {
-  position: absolute;
-  top: 90px;
-  right: 0;
-  width: 190px;
-  height: 220px;
-  opacity: 0.4;
-  @include m.halftone(m.$accent, 13px);
-  pointer-events: none;
+// header
+.m-cr-head {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 54px;
+  padding: 0 12px;
+  background: rgba(13, 17, 23, 0.92);
+  backdrop-filter: blur(10px);
+  border-bottom: 2px solid #000;
 }
 
-// -- header --
-.m-create-head {
+.m-cr-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  color: m.$text;
+  background: m.$surface-raised;
+  border-radius: 10px;
+  @include m.sticker-solid(3px);
+
+  my-global-icon { width: 20px; height: 20px; }
+}
+
+.m-cr-title {
+  font-family: m.$font-display;
+  font-size: 22px;
+  transform: rotate(-1.5deg);
+  color: #fff;
+  text-shadow: 2px 2px 0 m.$accent;
+}
+
+.m-cr-spacer { flex: 1; }
+
+// login gate
+.m-cr-loginwrap {
+  margin-top: 70px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  color: m.$text-muted;
+}
+
+.m-cr-cta {
+  padding: 11px 24px;
+  background: m.$logo-grad;
+  color: #fff;
+  font-weight: 800;
+  border-radius: 999px;
+  @include m.sticker-solid(3px, -2deg);
+}
+
+// upload your own
+.m-cr-upload {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: calc(100% - 24px);
+  margin: 16px 12px 6px;
+  padding: 16px;
+  background: m.$logo-grad;
+  color: m.$ink;
+  border-radius: 16px;
+  cursor: pointer;
+  @include m.sticker-solid(5px, -1deg);
+}
+
+.m-cr-upload-ic {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  my-global-icon { width: 24px; height: 24px; color: m.$ink; }
+}
+
+.m-cr-upload-txt {
+  flex: 1;
+  text-align: left;
+
+  .t { font-family: m.$font-display; font-size: 20px; }
+  .s { font-size: 12px; font-weight: 600; opacity: 0.8; }
+}
+
+.m-cr-chev { font-size: 22px; font-weight: 800; }
+
+// section
+.m-cr-section {
+  margin: 18px 12px 40px;
+}
+
+.m-cr-sec-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.m-cr-sec-title {
+  font-family: m.$font-display;
+  font-size: 19px;
+  color: #fff;
+  transform: rotate(-1deg);
+  text-shadow: 2px 2px 0 m.$accent2;
+}
+
+.m-cr-disc {
+  font-size: 12px;
+  font-weight: 700;
+  color: m.$text-muted;
+  background: none;
+  cursor: pointer;
+}
+
+// connect form
+.m-cr-connect {
+  background: m.$surface-card;
+  border-radius: 14px;
+  padding: 16px;
+  @include m.sticker-solid(4px);
+}
+
+.m-cr-connect-hint {
+  font-size: 13px;
+  line-height: 1.5;
+  color: m.$text-secondary;
+  margin-bottom: 12px;
+}
+
+.m-cr-in {
+  width: 100%;
+  height: 42px;
+  margin-bottom: 10px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 2px solid #000;
+  background: m.$surface-sunken;
+  color: m.$text;
+  font-size: 14px;
+  outline: none;
+
+  &:focus { border-color: m.$accent; }
+}
+
+.m-cr-connect-btn {
+  width: 100%;
+  height: 44px;
+  background: m.$logo-grad;
+  color: #fff;
+  font-weight: 800;
+  font-size: 15px;
+  border-radius: 10px;
+  cursor: pointer;
+  @include m.sticker-solid(3px);
+
+  &:disabled { opacity: 0.6; }
+}
+
+// connected
+.m-cr-connected {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: m.$success;
+  margin-bottom: 12px;
+
+  my-global-icon { width: 16px; height: 16px; }
+  b { color: m.$text; }
+}
+
+.m-cr-note {
+  padding: 24px 0;
+  text-align: center;
+  color: m.$text-muted;
+  font-size: 13px;
+}
+
+// works list
+.m-cr-works {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.m-cr-work {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 10px;
-  position: relative;
-  z-index: 2;
-
-  .m-create-back {
-    background: none;
-    border: none;
-    padding: 0;
-    display: flex;
-
-    my-global-icon { width: 26px; height: 26px; color: #fff; }
-  }
-
-  .m-create-htitle {
-    font-size: 17px;
-    font-weight: 700;
-    color: m.$text;
-  }
+  padding: 10px;
+  background: m.$surface-card;
+  border-radius: 12px;
+  @include m.sticker-solid(3px);
 }
 
-// -- hero --
-.m-create-hero {
-  position: relative;
-  z-index: 2;
-  text-align: center;
-  padding: 18px 6px 8px;
-
-  .m-create-badge {
-    width: 76px;
-    height: 76px;
-    margin: 6px auto 18px;
-    background: m.$logo-grad;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transform: rotate(-10deg);
-    clip-path: polygon(50% 0, 61% 12%, 76% 6%, 78% 23%, 95% 25%, 86% 40%, 100% 50%, 86% 60%, 95% 75%, 78% 77%, 76% 94%, 61% 88%, 50% 100%, 39% 88%, 24% 94%, 22% 77%, 5% 75%, 14% 60%, 0 50%, 14% 40%, 5% 25%, 22% 23%, 24% 6%, 39% 12%);
-
-    span {
-      font-family: m.$font-display;
-      font-size: 32px;
-      color: #fff;
-      text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.35);
-    }
-  }
-
-  .m-create-title {
-    font-family: m.$font-display;
-    font-size: 40px;
-    color: #fff;
-    margin: 0;
-    transform: rotate(-2deg);
-    text-shadow: 3px 3px 0 m.$accent;
-  }
-
-  .m-create-sub {
-    font-size: 14px;
-    color: m.$text-secondary;
-    line-height: 1.5;
-    margin: 16px auto 22px;
-    max-width: 300px;
-  }
-
-  .m-create-ctas {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    align-items: center;
-  }
-
-  .m-create-cta {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    height: 52px;
-    padding: 0 30px;
-    min-width: 240px;
-    font-family: m.$font-display;
-    font-size: 22px;
-    cursor: pointer;
-    @include m.sticker-solid(5px);
-
-    my-global-icon { width: 22px; height: 22px; }
-
-    &.primary {
-      background: m.$logo-grad;
-      color: m.$ink;
-      transform: rotate(-1.5deg);
-      my-global-icon { color: m.$ink; }
-    }
-
-    &.upload {
-      background: #fff;
-      color: #0b0d12;
-      transform: rotate(1.5deg);
-      my-global-icon { color: #0b0d12; }
-    }
-  }
-
-  .m-create-attrib {
-    font-size: 11.5px;
-    color: m.$text-muted;
-    margin-top: 16px;
-    line-height: 1.5;
-  }
-}
-
-// -- perks --
-.m-create-perks {
-  position: relative;
-  z-index: 2;
+.m-cr-work-cover {
+  flex: none;
+  width: 46px;
+  height: 61px;
+  border-radius: 8px;
+  background-color: m.$surface-raised;
+  background-size: cover;
+  background-position: center;
   display: flex;
-  justify-content: space-around;
-  margin: 26px 0 28px;
+  align-items: center;
+  justify-content: center;
+  color: m.$text-muted;
+  border: 2px solid #000;
 
-  .m-perk {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    flex: 1;
-
-    my-global-icon { width: 26px; height: 26px; color: m.$accent2; }
-
-    span {
-      font-size: 11.5px;
-      color: m.$text-secondary;
-      font-weight: 600;
-      text-align: center;
-    }
-  }
+  my-global-icon { width: 20px; height: 20px; }
 }
 
-// -- my works --
-.m-create-works {
-  position: relative;
-  z-index: 2;
+.m-cr-work-meta {
+  flex: 1;
+  min-width: 0;
+}
 
-  .m-create-works-head {
-    display: inline-block;
-    font-family: m.$font-display;
-    font-size: 22px;
-    color: #fff;
-    transform: rotate(-2deg);
-    text-shadow: 3px 3px 0 m.$accent;
-    margin-bottom: 16px;
-  }
+.m-cr-work-title {
+  font-weight: 800;
+  font-size: 14px;
+  color: m.$text;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
-  .m-create-empty {
-    padding: 24px 0;
-    text-align: center;
-    color: m.$text-muted;
-    font-size: 13px;
-  }
+.m-cr-work-proj {
+  margin-top: 3px;
+  font-size: 12px;
+  color: m.$text-muted;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
-  .m-create-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 14px;
-  }
+.m-cr-work-import {
+  flex: none;
+  height: 34px;
+  padding: 0 16px;
+  background: m.$accent;
+  color: #fff;
+  font-weight: 800;
+  font-size: 13px;
+  border-radius: 999px;
+  cursor: pointer;
+  @include m.sticker-solid(2px, -2deg);
 
-  .m-create-work {
-    .m-create-work-cover {
-      aspect-ratio: 3 / 4;
-      background: m.$surface-raised center/cover no-repeat;
-      border: 2px solid #000;
-      box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.5);
-      margin-bottom: 8px;
-    }
-
-    .m-create-work-title {
-      font-size: 13px;
-      font-weight: 700;
-      color: m.$text;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .m-create-work-status {
-      font-size: 11px;
-      color: m.$text-muted;
-      margin-top: 2px;
-
-      &[data-status="ready"] { color: m.$success; }
-      &[data-status="generating"] { color: m.$accent2; }
-      &[data-status="failed"] { color: m.$accent; }
-    }
-  }
+  &:disabled { opacity: 0.55; }
 }

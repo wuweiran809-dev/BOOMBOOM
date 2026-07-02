@@ -16,6 +16,7 @@ import { guessAdditionalAttributesFromQuery } from '@server/models/video/formatt
 import { VideoCommentModel } from '@server/models/video/video-comment.js'
 import express from 'express'
 import 'multer'
+import { Readable } from 'stream'
 import { createReqFiles, getCountVideos } from '../../../helpers/express-utils.js'
 import { getFormattedObjects } from '../../../helpers/utils.js'
 import { CONFIG } from '../../../initializers/config.js'
@@ -142,6 +143,14 @@ meRouter.post('/me/vip/activate', authenticate, asyncMiddleware(activateMyVip))
 meRouter.get('/me/videos/:videoId/purchase', authenticate, asyncMiddleware(getMyVideoPurchase))
 meRouter.post('/me/videos/:videoId/purchase', authenticate, asyncMiddleware(purchaseMyVideo))
 meRouter.put('/me/videos/:videoId/price', authenticate, asyncMiddleware(setMyVideoPrice))
+meRouter.put('/me/videos/:videoId/source', authenticate, asyncMiddleware(setMyVideoSource))
+
+// BoomBoom × 短剧工坊 (duanju) bridge — password-proxy, server-side
+meRouter.post('/me/duanju/connect', authenticate, asyncMiddleware(duanjuConnect))
+meRouter.get('/me/duanju/status', authenticate, asyncMiddleware(duanjuStatus))
+meRouter.post('/me/duanju/disconnect', authenticate, asyncMiddleware(duanjuDisconnect))
+meRouter.get('/me/duanju/works', authenticate, asyncMiddleware(duanjuWorks))
+meRouter.get('/me/duanju/download/:episodeId', authenticate, asyncMiddleware(duanjuDownload))
 
 // ---------------------------------------------------------------------------
 
@@ -533,4 +542,140 @@ async function setMyVideoPrice (req: express.Request, res: express.Response) {
   await video.save()
 
   return res.json({ coinPrice: video.coinPrice })
+}
+
+async function setMyVideoSource (req: express.Request, res: express.Response) {
+  const source = ('' + (req.body.source ?? '')).slice(0, 50)
+
+  const video = await VideoModel.loadFull(req.params.videoId)
+  if (!video) {
+    return res.fail({ status: HttpStatusCode.NOT_FOUND_404, message: 'Video not found' })
+  }
+
+  if (video.VideoChannel?.Account?.userId !== res.locals.oauth.token.user.id) {
+    return res.fail({ status: HttpStatusCode.FORBIDDEN_403, message: 'Not your video' })
+  }
+
+  video.externalSource = source || null
+  await video.save()
+
+  return res.json({ externalSource: video.externalSource })
+}
+
+// ---------------------------------------------------------------------------
+// BoomBoom × 短剧工坊 (duanju) bridge (password-proxy, server-side)
+// ---------------------------------------------------------------------------
+
+const DUANJU_BASE_URL = process.env.BOOMBOOM_DUANJU_URL || 'https://ai.xss16.com'
+
+async function duanjuConnect (req: express.Request, res: express.Response) {
+  const { username, password } = req.body
+  if (!username || !password) {
+    return res.fail({ status: HttpStatusCode.BAD_REQUEST_400, message: 'username and password required' })
+  }
+
+  let r: any
+  try {
+    r = await fetch(`${DUANJU_BASE_URL}/api/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    })
+  } catch {
+    return res.fail({ status: HttpStatusCode.BAD_GATEWAY_502, message: 'Cannot reach 短剧工坊' })
+  }
+
+  if (!r.ok) {
+    return res.fail({ status: HttpStatusCode.UNAUTHORIZED_401, message: '短剧工坊 login failed' })
+  }
+
+  const setCookies: string[] = (r.headers as any).getSetCookie ? (r.headers as any).getSetCookie() : []
+  const session = setCookies.map(c => c.split(';')[0]).find(c => c.startsWith('session='))
+  if (!session) {
+    return res.fail({ status: HttpStatusCode.BAD_GATEWAY_502, message: 'No session returned by 短剧工坊' })
+  }
+
+  const user = await UserModel.loadByIdFull(res.locals.oauth.token.user.id)
+  user.duanjuSession = session
+  user.duanjuUsername = username
+  await user.save()
+
+  return res.json({ connected: true, username })
+}
+
+async function duanjuStatus (req: express.Request, res: express.Response) {
+  const user = await UserModel.loadByIdFull(res.locals.oauth.token.user.id)
+  return res.json({ connected: !!user.duanjuSession, username: user.duanjuUsername || null })
+}
+
+async function duanjuDisconnect (req: express.Request, res: express.Response) {
+  const user = await UserModel.loadByIdFull(res.locals.oauth.token.user.id)
+  user.duanjuSession = null
+  user.duanjuUsername = null
+  await user.save()
+  return res.json({ connected: false })
+}
+
+async function duanjuWorks (req: express.Request, res: express.Response) {
+  const user = await UserModel.loadByIdFull(res.locals.oauth.token.user.id)
+  if (!user.duanjuSession) {
+    return res.fail({ status: HttpStatusCode.BAD_REQUEST_400, message: 'Not connected to 短剧工坊' })
+  }
+
+  const headers = { Cookie: user.duanjuSession }
+  let projects: any[]
+  try {
+    const pr = await fetch(`${DUANJU_BASE_URL}/api/projects`, { headers })
+    if (pr.status === 401) return res.fail({ status: HttpStatusCode.UNAUTHORIZED_401, message: '短剧工坊 session expired, reconnect' })
+    projects = await pr.json()
+  } catch {
+    return res.fail({ status: HttpStatusCode.BAD_GATEWAY_502, message: 'Cannot reach 短剧工坊' })
+  }
+
+  const works: any[] = []
+  for (const p of (projects || []).slice(0, 30)) {
+    try {
+      const dr = await fetch(`${DUANJU_BASE_URL}/api/projects/${p.id}`, { headers })
+      const detail = await dr.json()
+      for (const ep of (detail.episodes || [])) {
+        if (ep.status === 'done' && ep.video_path) {
+          works.push({
+            episodeId: ep.id,
+            projectId: p.id,
+            projectName: p.name,
+            title: ep.title || `EP${ep.episode_no}`,
+            coverUrl: ep.cover_url ? `${DUANJU_BASE_URL}${ep.cover_url}` : null
+          })
+        }
+      }
+    } catch { /* skip a project that fails to load */ }
+  }
+
+  return res.json({ total: works.length, data: works })
+}
+
+async function duanjuDownload (req: express.Request, res: express.Response) {
+  const user = await UserModel.loadByIdFull(res.locals.oauth.token.user.id)
+  if (!user.duanjuSession) {
+    return res.fail({ status: HttpStatusCode.BAD_REQUEST_400, message: 'Not connected to 短剧工坊' })
+  }
+
+  const epId = parseInt(req.params.episodeId, 10)
+  if (isNaN(epId)) {
+    return res.fail({ status: HttpStatusCode.BAD_REQUEST_400, message: 'Invalid episode id' })
+  }
+
+  let up: any
+  try {
+    up = await fetch(`${DUANJU_BASE_URL}/media/ep_${epId}.mp4`, { headers: { Cookie: user.duanjuSession } })
+  } catch {
+    return res.fail({ status: HttpStatusCode.BAD_GATEWAY_502, message: 'Cannot reach 短剧工坊' })
+  }
+
+  if (!up.ok || !up.body) {
+    return res.fail({ status: HttpStatusCode.BAD_GATEWAY_502, message: 'Download from 短剧工坊 failed' })
+  }
+
+  res.setHeader('Content-Type', 'video/mp4')
+  Readable.fromWeb(up.body as any).pipe(res)
 }

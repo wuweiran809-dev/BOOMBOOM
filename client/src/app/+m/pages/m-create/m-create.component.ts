@@ -1,62 +1,125 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core'
-import { Router } from '@angular/router'
-import { AuthService } from '@app/core'
+import { FormsModule } from '@angular/forms'
+import { Router, RouterLink } from '@angular/router'
+import { AuthService, Notifier } from '@app/core'
 import { GlobalIconComponent } from '@app/shared/shared-icons/global-icon.component'
-import { DramaGenService, DramaGenWork } from '../../dramagen/dramagen.service'
+import { DuanjuWork, MDuanjuService } from '../../m-duanju.service'
 
 @Component({
   selector: 'm-create',
   templateUrl: './m-create.component.html',
   styleUrls: [ './m-create.component.scss' ],
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [ GlobalIconComponent ]
+  providers: [ MDuanjuService ],
+  imports: [ GlobalIconComponent, FormsModule, RouterLink ]
 })
 export class MCreateComponent implements OnInit {
-  private dramaGen = inject(DramaGenService)
+  private duanju = inject(MDuanjuService)
   private auth = inject(AuthService)
   private router = inject(Router)
+  private notifier = inject(Notifier)
 
-  works = signal<DramaGenWork[]>([])
+  connected = signal(false)
+  duanjuUsername = signal<string | null>(null)
+  works = signal<DuanjuWork[]>([])
   loadingWorks = signal(false)
+
+  // connect form
+  username = ''
+  password = ''
+  connecting = signal(false)
+
+  importingId = signal<number | null>(null)
 
   get isLoggedIn () {
     return this.auth.isLoggedIn()
   }
 
-  get isConfigured () {
-    return this.dramaGen.isConfigured
+  private get channelId (): number | null {
+    const chans = (this.auth.getUser() as any)?.videoChannels
+    return chans && chans.length ? chans[0].id : null
   }
 
   ngOnInit () {
-    if (this.isConfigured && this.isLoggedIn) this.loadWorks()
+    if (this.isLoggedIn) this.refreshStatus()
   }
 
-  back () {
-    this.router.navigate([ '/m/me' ])
+  private refreshStatus () {
+    this.duanju.status().subscribe({
+      next: s => {
+        this.connected.set(s.connected)
+        this.duanjuUsername.set(s.username)
+        if (s.connected) this.loadWorks()
+      }
+    })
   }
 
-  startCreate () {
-    if (!this.isLoggedIn) {
-      this.router.navigate([ '/m/login' ])
-      return
-    }
-    // Outbound with source attribution (utm_source=boomboom&ref=<userId>)
-    this.dramaGen.openCreate('/create')
+  connect () {
+    const u = this.username.trim()
+    if (!u || !this.password || this.connecting()) return
+
+    this.connecting.set(true)
+    this.duanju.connect(u, this.password).subscribe({
+      next: s => {
+        this.connected.set(true)
+        this.duanjuUsername.set(s.username)
+        this.password = ''
+        this.connecting.set(false)
+        this.notifier.success($localize`:@@boomboom.m.create.connected:Connected to 短剧工坊`)
+        this.loadWorks()
+      },
+      error: () => {
+        this.notifier.error($localize`:@@boomboom.m.create.connectFail:Connection failed — check your account`)
+        this.connecting.set(false)
+      }
+    })
   }
 
-  goUpload () {
-    if (!this.isLoggedIn) {
-      this.router.navigate([ '/m/login' ])
-      return
-    }
-    this.router.navigate([ '/m/upload' ])
+  disconnect () {
+    this.duanju.disconnect().subscribe({
+      next: () => {
+        this.connected.set(false)
+        this.duanjuUsername.set(null)
+        this.works.set([])
+      }
+    })
   }
 
   private loadWorks () {
     this.loadingWorks.set(true)
-    this.dramaGen.listMyWorks().subscribe({
-      next: works => { this.works.set(works || []); this.loadingWorks.set(false) },
+    this.duanju.works().subscribe({
+      next: r => { this.works.set(r.data || []); this.loadingWorks.set(false) },
       error: () => this.loadingWorks.set(false)
     })
+  }
+
+  importWork (w: DuanjuWork) {
+    if (this.importingId()) return
+
+    const chId = this.channelId
+    if (!chId) { this.notifier.error($localize`:@@boomboom.m.create.noChannel:No channel available`); return }
+
+    this.importingId.set(w.episodeId)
+    this.duanju.importEpisode(w, chId).subscribe({
+      next: (up: any) => {
+        this.importingId.set(null)
+        this.notifier.success($localize`:@@boomboom.m.create.imported:Imported to BOOMBOOM`)
+        const v = up?.video
+        if (v?.shortUUID || v?.uuid) this.router.navigate([ '/m/w', v.shortUUID || v.uuid ])
+      },
+      error: () => {
+        this.importingId.set(null)
+        this.notifier.error($localize`:@@boomboom.m.create.importFail:Import failed, please try again`)
+      }
+    })
+  }
+
+  goUpload () {
+    if (!this.isLoggedIn) { this.router.navigate([ '/m/login' ]); return }
+    this.router.navigate([ '/m/upload' ])
+  }
+
+  back () {
+    this.router.navigate([ '/m/me' ])
   }
 }

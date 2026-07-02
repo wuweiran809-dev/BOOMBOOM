@@ -585,6 +585,11 @@ export class VideoModel extends SequelizeModel<VideoModel> {
   @Column
   declare coinPrice: number
 
+  // BoomBoom attribution: external origin of an imported video (e.g. 'duanju'), null = native
+  @AllowNull(true)
+  @Column
+  declare externalSource: string
+
   @AllowNull(false)
   @Column
   declare embedPrivacyPolicy: VideoEmbedPrivacyPolicyType

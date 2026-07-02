@@ -1,18 +1,24 @@
 <div class="m-up">
+  <!-- hidden native pickers -->
+  <input #videoInput type="file" accept="video/*" hidden (change)="onVideoPicked($event)" />
+  <input #coverInput type="file" accept="image/*" hidden (change)="onCoverPicked($event)" />
+
   <!-- header -->
   <div class="m-up-head">
     <button class="m-up-cancel" (click)="cancel()" i18n="@@boomboom.m.upload.cancel">Cancel</button>
     <span class="m-up-title" i18n="@@boomboom.m.upload.title">Publish</span>
-    <button class="m-up-draft" i18n="@@boomboom.m.upload.draft">Save draft</button>
+    <span class="m-up-draft"></span>
   </div>
 
   <div class="m-up-scroll">
     <!-- cover + basic -->
     <div class="m-up-row1">
-      <button class="m-up-cover" (click)="publish()">
-        <my-global-icon iconName="add"></my-global-icon>
-        <span class="main" i18n="@@boomboom.m.upload.cover">Cover</span>
-        <span class="hint" i18n="@@boomboom.m.upload.coverHint">3:4 portrait</span>
+      <button class="m-up-cover" [style.background-image]="coverPreview() ? 'url(' + coverPreview() + ')' : ''" (click)="coverInput.click()">
+        @if (!coverPreview()) {
+          <my-global-icon iconName="add"></my-global-icon>
+          <span class="main" i18n="@@boomboom.m.upload.cover">Cover</span>
+          <span class="hint" i18n="@@boomboom.m.upload.coverHint">3:4 portrait</span>
+        }
       </button>
       <div class="m-up-fields">
         <input class="m-up-name" type="text" [(ngModel)]="title" maxlength="20" i18n-placeholder="@@boomboom.m.upload.namePlaceholder" placeholder="Title (max 20 chars)" />
@@ -28,15 +34,22 @@
       }
     </div>
 
-    <!-- episodes -->
+    <!-- video file -->
     <div class="m-up-eplabel">
-      <span i18n="@@boomboom.m.upload.episodes">Episodes</span>
+      <span i18n="@@boomboom.m.upload.videoLabel">Video</span>
       <span class="cnt" i18n="@@boomboom.m.upload.episodesHint">Tap + to pick a video</span>
     </div>
     <div class="m-up-epgrid">
-      <button class="m-up-epadd" (click)="publish()">
-        <my-global-icon iconName="add"></my-global-icon>
-      </button>
+      @if (videoFile()) {
+        <button class="m-up-epfile" (click)="videoInput.click()">
+          <my-global-icon iconName="videos"></my-global-icon>
+          <span class="fn">{{ videoName }}</span>
+        </button>
+      } @else {
+        <button class="m-up-epadd" (click)="videoInput.click()">
+          <my-global-icon iconName="add"></my-global-icon>
+        </button>
+      }
     </div>
 
     <!-- pricing -->
@@ -49,14 +62,31 @@
         <button class="m-toggle" [class.on]="paidUnlock()" (click)="togglePaid()"><span></span></button>
       </div>
       @if (paidUnlock()) {
-        <div class="m-up-price-sub"><span i18n="@@boomboom.m.upload.freePreview">Free preview</span><span class="v" i18n="@@boomboom.m.upload.firstEps">First 2 eps</span></div>
-        <div class="m-up-price-sub"><span i18n="@@boomboom.m.upload.pricePerEp">Price per episode</span><span class="v gold" i18n="@@boomboom.m.upload.coinsPerEp">25 coins/ep</span></div>
+        <div class="m-up-price-sub">
+          <span i18n="@@boomboom.m.upload.pricePerEp">Price</span>
+          <span class="v gold"><my-global-icon iconName="burst"></my-global-icon>
+            <input class="m-up-price-input" type="number" min="0" max="99999" [(ngModel)]="coinPrice" /> <ng-container i18n="@@boomboom.m.upload.coins">coins</ng-container>
+          </span>
+        </div>
       }
     </div>
+
+    @if (uploading()) {
+      <div class="m-up-progress">
+        <div class="bar"><div class="fill" [style.width.%]="progress()"></div></div>
+        <div class="pct">{{ progress() }}%</div>
+      </div>
+    }
   </div>
 
   <!-- footer -->
   <div class="m-up-footer">
-    <button class="m-up-publish" (click)="publish()" i18n="@@boomboom.m.upload.publish">Publish</button>
+    <button class="m-up-publish" [disabled]="uploading()" (click)="publish()">
+      @if (uploading()) {
+        <ng-container i18n="@@boomboom.m.upload.publishing">Publishing…</ng-container>
+      } @else {
+        <ng-container i18n="@@boomboom.m.upload.publish">Publish</ng-container>
+      }
+    </button>
   </div>
 </div>

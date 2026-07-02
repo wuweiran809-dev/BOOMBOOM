@@ -322,6 +322,15 @@ export class UserModel extends SequelizeModel<UserModel> {
   @Column(DataType.DATE)
   declare vipExpiration: Date
 
+  // duanju (短剧工坊) link — stored session cookie + username (password-proxy bridge)
+  @AllowNull(true)
+  @Column(DataType.TEXT)
+  declare duanjuSession: string
+
+  @AllowNull(true)
+  @Column
+  declare duanjuUsername: string
+
   @AllowNull(false)
   @Default(true)
   @Is('UserVideosHistoryEnabled', value => throwIfNotValid(value, isUserVideosHistoryEnabledValid, 'Videos history enabled'))

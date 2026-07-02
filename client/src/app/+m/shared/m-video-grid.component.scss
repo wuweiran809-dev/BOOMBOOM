@@ -59,6 +59,21 @@
   background: linear-gradient(to top, rgba(0, 0, 0, 0.85), transparent);
 }
 
+// "来源" attribution badge for imported videos
+.m-src-badge {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  z-index: 2;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: m.$accent2;
+  color: m.$ink;
+  font-size: 10px;
+  font-weight: 800;
+  @include m.sticker-solid(2px, -3deg);
+}
+
 .m-poster-info {
   position: absolute;
   left: 8px;
