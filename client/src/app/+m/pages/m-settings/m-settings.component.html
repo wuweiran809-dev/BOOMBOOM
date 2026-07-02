@@ -41,6 +41,13 @@
     </div>
   }
 
+  <!-- 语言 -->
+  <div class="m-set-label" i18n="@@boomboom.m.settings.language">Language</div>
+  <div class="m-set-lang">
+    <button class="m-lang-chip" [class.on]="isZh" (click)="switchLanguage('zh-Hans-CN')">中文</button>
+    <button class="m-lang-chip" [class.on]="!isZh" (click)="switchLanguage('en-US')">English</button>
+  </div>
+
   <!-- 钱包 -->
   <div class="m-set-label" i18n="@@boomboom.m.settings.wallet">Wallet</div>
   <button class="m-set-row" style="--rot:-.5deg" (click)="go(['/m/recharge'])">

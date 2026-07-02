@@ -168,6 +168,29 @@
   }
 }
 
+// -- language toggle --
+.m-set-lang {
+  display: flex;
+  gap: 10px;
+}
+
+.m-lang-chip {
+  flex: 1;
+  height: 44px;
+  border-radius: 12px;
+  background: m.$surface-card;
+  color: m.$text-secondary;
+  font-weight: 800;
+  font-size: 15px;
+  cursor: pointer;
+  @include m.sticker-solid(3px);
+
+  &.on {
+    background: m.$logo-grad;
+    color: #fff;
+  }
+}
+
 // -- row card --
 .m-set-row {
   position: relative;

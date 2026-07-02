@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core'
+import { ChangeDetectionStrategy, Component, LOCALE_ID, OnInit, inject, signal } from '@angular/core'
 import { FormsModule } from '@angular/forms'
 import { Router } from '@angular/router'
 import { AuthService, Notifier, ServerService } from '@app/core'
@@ -21,6 +21,7 @@ export class MSettingsComponent implements OnInit {
   private notifier = inject(Notifier)
   private serverService = inject(ServerService)
   private userService = inject(UserService)
+  private localeId = inject(LOCALE_ID)
 
   notifyOn = signal(true)
   wifiOnly = signal(false)
@@ -69,6 +70,24 @@ export class MSettingsComponent implements OnInit {
 
   back () {
     this.router.navigate([ '/m/me' ])
+  }
+
+  // ---- interface language ----
+
+  get isZh (): boolean {
+    return (this.localeId || '').toLowerCase().startsWith('zh')
+  }
+
+  // Switch the compiled UI locale via the clientLanguage cookie, then reload.
+  switchLanguage (target: 'en-US' | 'zh-Hans-CN') {
+    if (target.startsWith('zh') === this.isZh) return
+
+    try {
+      const secure = location.protocol === 'https:' ? '; secure; samesite=none' : ''
+      document.cookie = 'clientLanguage=' + target + '; path=/; max-age=7776000' + secure
+    } catch {}
+
+    window.location.reload()
   }
 
   go (commands: any[]) {

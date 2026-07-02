@@ -29543,6 +29543,10 @@ Ensure you have correctly configured BoomBoom (config/ directory), in particular
         <source>Swipe up for more</source>
         <target state="translated">上滑看更多</target>
       </trans-unit>
+      <trans-unit id="boomboom.m.settings.language" datatype="html">
+        <source>Language</source>
+        <target state="translated">语言</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>
