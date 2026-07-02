@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, ElementRef, OnInit, inject, signal, viewChild } from '@angular/core'
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser'
 import { Router } from '@angular/router'
 import { AuthService, Notifier } from '@app/core'
 import { GlobalIconComponent } from '@app/shared/shared-icons/global-icon.component'
@@ -24,6 +25,7 @@ export class MFeedComponent implements OnInit {
   private auth = inject(AuthService)
   private subscriptionService = inject(UserSubscriptionService)
   private notifier = inject(Notifier)
+  private sanitizer = inject(DomSanitizer)
   ui = inject(MUiService)
 
   likedIds = signal<Set<string>>(new Set())
@@ -33,6 +35,8 @@ export class MFeedComponent implements OnInit {
 
   videos = signal<Video[]>([])
   index = signal(0)
+  // Inline autoplay (muted, looping) of the active card — swipe-to-watch.
+  embedUrl = signal<SafeResourceUrl | null>(null)
   loading = signal(false)
   activeTab = signal<FeedTab>('recommend')
 
@@ -64,6 +68,7 @@ export class MFeedComponent implements OnInit {
     this.activeTab.set(tab)
     this.videos.set([])
     this.index.set(0)
+    this.embedUrl.set(null)
     this.pagination.currentPage = 1
     this.load()
   }
@@ -85,12 +90,35 @@ export class MFeedComponent implements OnInit {
       nsfw: 'false'
     }).subscribe({
       next: ({ data, total }) => {
-        this.videos.update(prev => [ ...prev, ...data ])
+        // "For You" = recommendation feed: shuffle each page for random variety
+        const batch = this.activeTab() === 'recommend' ? this.shuffle([ ...data ]) : data
+        const wasEmpty = this.videos().length === 0
+        this.videos.update(prev => [ ...prev, ...batch ])
         this.pagination.totalItems = total
         this.loading.set(false)
+        if (wasEmpty) this.syncEmbed()
       },
       error: () => this.loading.set(false)
     })
+  }
+
+  private shuffle<T> (a: T[]): T[] {
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[ a[i], a[j] ] = [ a[j], a[i] ]
+    }
+    return a
+  }
+
+  // Autoplay the active video inline (muted + loop), so swiping = watching.
+  private syncEmbed () {
+    const v = this.current
+    if (!v) { this.embedUrl.set(null); return }
+
+    const base = v.embedUrl || (window.location.origin + v.embedPath)
+    const sep = base.includes('?') ? '&' : '?'
+    const url = base + sep + 'autoplay=1&muted=1&loop=1&controls=0&title=0&warningTitle=0&peertubeLink=0&p2p=0'
+    this.embedUrl.set(this.sanitizer.bypassSecurityTrustResourceUrl(url))
   }
 
   getThumb (v: Video): string {
@@ -214,9 +242,13 @@ export class MFeedComponent implements OnInit {
     }
   }
 
-  // -- Swipe --
+  // -- Swipe + tap-to-enter --
+  private startTarget: HTMLElement | null = null
+
   onTouchStart (e: TouchEvent) {
     this.startY = e.touches[0].clientY
+    this.curY = this.startY
+    this.startTarget = e.target as HTMLElement
     this.dragging = true
   }
 
@@ -230,7 +262,12 @@ export class MFeedComponent implements OnInit {
     this.dragging = false
 
     const dy = this.startY - this.curY
-    if (Math.abs(dy) < 70) return
+
+    // small movement = a tap: enter the drama (unless tapping an interactive control)
+    if (Math.abs(dy) < 70) {
+      if (!this.startTarget?.closest('button, a, input')) this.openPlayer()
+      return
+    }
 
     if (dy > 0) this.next()
     else this.prev()
@@ -240,6 +277,7 @@ export class MFeedComponent implements OnInit {
     const vids = this.videos()
     if (this.index() < vids.length - 1) {
       this.index.update(i => i + 1)
+      this.syncEmbed()
       if (this.index() >= vids.length - 3) {
         this.pagination.currentPage++
         this.load()
@@ -248,6 +286,9 @@ export class MFeedComponent implements OnInit {
   }
 
   private prev () {
-    if (this.index() > 0) this.index.update(i => i - 1)
+    if (this.index() > 0) {
+      this.index.update(i => i - 1)
+      this.syncEmbed()
+    }
   }
 }

@@ -6,10 +6,20 @@
   (touchend)="onTouchEnd()"
 >
   @if (current; as v) {
-    <!-- poster background -->
+    <!-- poster background + inline autoplay video -->
     <div class="m-feed-bg">
       @if (getThumb(v)) {
         <img [src]="getThumb(v)" [alt]="v.name" />
+      }
+      @if (embedUrl()) {
+        <iframe
+          class="m-feed-video"
+          [src]="embedUrl()"
+          frameborder="0"
+          allow="autoplay; fullscreen"
+          allowfullscreen
+          sandbox="allow-same-origin allow-scripts allow-popups"
+        ></iframe>
       }
       <div class="m-feed-grad"></div>
       <div class="m-feed-grad-accent"></div>
