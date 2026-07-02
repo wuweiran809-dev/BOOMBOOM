@@ -144,6 +144,7 @@ meRouter.get('/me/videos/:videoId/purchase', authenticate, asyncMiddleware(getMy
 meRouter.post('/me/videos/:videoId/purchase', authenticate, asyncMiddleware(purchaseMyVideo))
 meRouter.put('/me/videos/:videoId/price', authenticate, asyncMiddleware(setMyVideoPrice))
 meRouter.put('/me/videos/:videoId/source', authenticate, asyncMiddleware(setMyVideoSource))
+meRouter.put('/me/videos/:videoId/series', authenticate, asyncMiddleware(setMyVideoSeries))
 
 // BoomBoom × 短剧工坊 (duanju) bridge — password-proxy, server-side
 meRouter.post('/me/duanju/connect', authenticate, asyncMiddleware(duanjuConnect))
@@ -560,6 +561,24 @@ async function setMyVideoSource (req: express.Request, res: express.Response) {
   await video.save()
 
   return res.json({ externalSource: video.externalSource })
+}
+
+async function setMyVideoSeries (req: express.Request, res: express.Response) {
+  const seriesName = ('' + (req.body.seriesName ?? '')).trim().slice(0, 80)
+
+  const video = await VideoModel.loadFull(req.params.videoId)
+  if (!video) {
+    return res.fail({ status: HttpStatusCode.NOT_FOUND_404, message: 'Video not found' })
+  }
+
+  if (video.VideoChannel?.Account?.userId !== res.locals.oauth.token.user.id) {
+    return res.fail({ status: HttpStatusCode.FORBIDDEN_403, message: 'Not your video' })
+  }
+
+  video.seriesName = seriesName || null
+  await video.save()
+
+  return res.json({ seriesName: video.seriesName })
 }
 
 // ---------------------------------------------------------------------------

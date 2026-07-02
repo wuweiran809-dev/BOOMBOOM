@@ -590,6 +590,11 @@ export class VideoModel extends SequelizeModel<VideoModel> {
   @Column
   declare externalSource: string
 
+  // BoomBoom drama grouping: episodes of the same 短剧 share this (null = standalone)
+  @AllowNull(true)
+  @Column
+  declare seriesName: string
+
   @AllowNull(false)
   @Column
   declare embedPrivacyPolicy: VideoEmbedPrivacyPolicyType

@@ -200,6 +200,22 @@
   background-position: center;
 }
 
+// series name input
+.m-up-series {
+  width: 100%;
+  height: 42px;
+  padding: 0 14px;
+  background: m.$surface-sunken;
+  border: 2px solid #000;
+  border-radius: 10px;
+  color: m.$text;
+  font-size: 14px;
+  outline: none;
+
+  &::placeholder { color: m.$text-muted; }
+  &:focus { border-color: m.$accent; }
+}
+
 // price input inline
 .m-up-price-input {
   width: 68px;

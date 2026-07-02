@@ -29479,6 +29479,14 @@ Ensure you have correctly configured BoomBoom (config/ directory), in particular
         <source>短剧工坊</source>
         <target state="translated">短剧工坊</target>
       </trans-unit>
+      <trans-unit id="boomboom.m.upload.seriesLabel" datatype="html">
+        <source>Series name (optional)</source>
+        <target state="translated">剧名(选填)</target>
+      </trans-unit>
+      <trans-unit id="boomboom.m.upload.seriesPlaceholder" datatype="html">
+        <source>同名归为一部剧,单集可留空</source>
+        <target state="translated">同名归为一部剧,单集可留空</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

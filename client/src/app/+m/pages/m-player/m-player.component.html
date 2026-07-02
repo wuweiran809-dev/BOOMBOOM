@@ -7,7 +7,7 @@
     <div class="m-player-titles">
       <div class="t">{{ video()?.name || nowPlayingLabel }}</div>
       @if (video()) {
-        <div class="ep">EP.{{ epNum(0) }} · <ng-container i18n="@@boomboom.m.player.drama">Drama</ng-container></div>
+        <div class="ep">EP.{{ currentEpNum() }} · <ng-container i18n="@@boomboom.m.player.drama">Drama</ng-container></div>
       }
     </div>
     <button class="m-player-dm-toggle" [class.on]="danmakuOn()" (click)="toggleDanmaku()" i18n-title="@@boomboom.m.player.danmakuToggle" title="Danmaku">弹</button>

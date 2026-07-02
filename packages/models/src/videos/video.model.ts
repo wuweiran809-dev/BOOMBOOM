@@ -79,6 +79,9 @@ export interface Video extends Partial<VideoAdditionalAttributes> {
 
   // BoomBoom attribution: external origin of an imported video (e.g. 'duanju')
   externalSource?: string | null
+
+  // BoomBoom drama grouping: episodes of the same 短剧 share this
+  seriesName?: string | null
   comments: number
 
   nsfw: boolean

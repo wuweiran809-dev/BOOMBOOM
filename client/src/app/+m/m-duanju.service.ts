@@ -64,8 +64,12 @@ export class MDuanjuService {
         switchMap((up: any) => {
           const vid = up?.video
           if (!vid?.id) return of(up)
+          // tag origin + group by the duanju project (so its episodes stay together)
           return this.authHttp.put(`${MDuanjuService.VIDEOS}/${vid.id}/source`, { source: 'duanju' })
-            .pipe(map(() => up))
+            .pipe(
+              switchMap(() => this.authHttp.put(`${MDuanjuService.VIDEOS}/${vid.id}/series`, { seriesName: work.projectName || work.title })),
+              map(() => up)
+            )
         }),
         catchError(err => this.restExtractor.handleError(err))
       )

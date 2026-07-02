@@ -98,21 +98,27 @@ export class MPlayerComponent implements OnInit, OnDestroy {
     })
   }
 
-  // Load the real episodes: other videos from the same channel (the "drama"),
-  // in publish order. Falls back to just this video.
+  // Load the real episodes: only videos of the SAME drama (same seriesName),
+  // in publish order. A standalone video (no seriesName) shows only itself,
+  // so different dramas never mix into one episode strip.
   private loadEpisodes (v: VideoDetails) {
+    const series = (v as any).seriesName
     const handle = v.channel?.nameWithHost || v.byVideoChannel
-    if (!handle) {
+
+    if (!series || !handle) {
       this.episodes.set([ v ])
       return
     }
 
     this.videoService.listChannelVideos({
       videoChannel: { nameWithHost: handle },
-      videoPagination: { currentPage: 1, itemsPerPage: 50, totalItems: 0 },
+      videoPagination: { currentPage: 1, itemsPerPage: 100, totalItems: 0 },
       sort: 'publishedAt' as VideoSortField
     }).subscribe({
-      next: ({ data }) => this.episodes.set(data.length ? data : [ v ]),
+      next: ({ data }) => {
+        const eps = (data || []).filter(ep => (ep as any).seriesName === series)
+        this.episodes.set(eps.length ? eps : [ v ])
+      },
       error: () => this.episodes.set([ v ])
     })
   }
@@ -291,5 +297,13 @@ export class MPlayerComponent implements OnInit, OnDestroy {
 
   epNum (i: number) {
     return String(i + 1).padStart(2, '0')
+  }
+
+  // The episode number of the video currently playing (for the header).
+  currentEpNum (): string {
+    const v = this.video()
+    const eps = this.episodes()
+    const idx = v ? eps.findIndex(e => e.uuid === v.uuid) : -1
+    return String((idx >= 0 ? idx : 0) + 1).padStart(2, '0')
   }
 }

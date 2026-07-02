@@ -309,6 +309,7 @@ export class VideoTableAttributes {
       'downloadEnabled',
       'coinPrice',
       'externalSource',
+      'seriesName',
       'embedPrivacyPolicy',
       'waitTranscoding',
       'state',

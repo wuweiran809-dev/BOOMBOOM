@@ -78,6 +78,7 @@ export class Video implements VideoServerModel {
 
   coinPrice: number
   externalSource: string | null
+  seriesName: string | null
 
   nsfw: boolean
   nsfwFlags: number
@@ -186,6 +187,7 @@ export class Video implements VideoServerModel {
     this.downloads = hash.downloads
     this.coinPrice = hash.coinPrice ?? 0
     this.externalSource = hash.externalSource ?? null
+    this.seriesName = hash.seriesName ?? null
 
     this.nsfw = hash.nsfw
     this.nsfwFlags = hash.nsfwFlags

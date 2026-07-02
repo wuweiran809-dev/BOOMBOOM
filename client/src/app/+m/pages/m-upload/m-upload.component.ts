@@ -21,6 +21,7 @@ export class MUploadComponent {
 
   title = ''
   desc = ''
+  seriesName = ''
   paidUnlock = signal(false)
   coinPrice = 50
 
@@ -123,6 +124,7 @@ export class MUploadComponent {
   }
 
   private afterUpload (video: any) {
+    const id = video?.id
     const finish = () => {
       this.uploading.set(false)
       this.notifier.success($localize`:@@boomboom.m.upload.published:Published!`)
@@ -130,12 +132,23 @@ export class MUploadComponent {
       else this.router.navigate([ '/m/me' ])
     }
 
-    // set the paid-unlock price on the freshly uploaded video
-    if (this.paidUnlock() && video?.id) {
-      this.http.put(`${environment.apiUrl}/api/v1/users/me/videos/${video.id}/price`, { coinPrice: this.coinPrice })
-        .subscribe({ next: finish, error: finish })
+    // tag the drama/series (so episodes group together), then finish
+    const setSeries = () => {
+      const s = this.seriesName.trim()
+      if (id && s) {
+        this.http.put(`${environment.apiUrl}/api/v1/users/me/videos/${id}/series`, { seriesName: s })
+          .subscribe({ next: finish, error: finish })
+      } else {
+        finish()
+      }
+    }
+
+    // set the paid-unlock price on the freshly uploaded video, then the series
+    if (this.paidUnlock() && id) {
+      this.http.put(`${environment.apiUrl}/api/v1/users/me/videos/${id}/price`, { coinPrice: this.coinPrice })
+        .subscribe({ next: setSeries, error: setSeries })
     } else {
-      finish()
+      setSeries()
     }
   }
 }
